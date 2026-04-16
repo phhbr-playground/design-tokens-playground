@@ -1,0 +1,89 @@
+name: 🎨 Create New Token
+description: Request a new design token to be added to the system
+title: "[CREATE] "
+labels: ["token-request", "create"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        ## Create a New Design Token
+        Fill out the form below to request a new token. A pull request will be automatically created for review.
+
+  - type: dropdown
+    id: category
+    attributes:
+      label: Token Category
+      description: What type of token is this?
+      options:
+        - color
+        - typography
+        - spacing
+        - shadow
+        - border
+        - animation
+        - breakpoint
+    validations:
+      required: true
+
+  - type: input
+    id: token-name
+    attributes:
+      label: Token Name
+      description: |
+        Use kebab-case (e.g., primary-blue, heading-large, spacing-md).
+        This will be the key used to reference the token.
+      placeholder: "e.g., primary-blue-500"
+    validations:
+      required: true
+
+  - type: textarea
+    id: token-value
+    attributes:
+      label: Token Value
+      description: |
+        The value for this token. Examples:
+        - Color: #3B82F6 or rgb(59, 130, 246)
+        - Spacing: 16px or 1rem
+        - Typography: { "fontSize": "18px", "fontWeight": "600", "lineHeight": "1.5" }
+        - Shadow: 0 4px 6px rgba(0, 0, 0, 0.1)
+      placeholder: "#3B82F6"
+    validations:
+      required: true
+
+  - type: input
+    id: token-group
+    attributes:
+      label: Token Group (Optional)
+      description: |
+        Nest this token under a group. Use dot notation for nested groups.
+        Leave empty for root-level tokens.
+      placeholder: "e.g., brand.primary or feedback.success"
+
+  - type: textarea
+    id: description
+    attributes:
+      label: Description
+      description: Explain the purpose and intended use of this token.
+      placeholder: "Primary brand color used for main CTAs and links"
+    validations:
+      required: true
+
+  - type: textarea
+    id: usage-examples
+    attributes:
+      label: Usage Examples
+      description: Where should this token be used?
+      placeholder: |
+        - Primary buttons
+        - Active navigation items
+        - Link text color
+
+  - type: checkboxes
+    id: confirmation
+    attributes:
+      label: Pre-submission Checklist
+      options:
+        - label: I have checked that this token does not already exist
+          required: true
+        - label: The token name follows our naming conventions
+          required: true

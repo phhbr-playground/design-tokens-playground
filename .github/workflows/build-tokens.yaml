@@ -1,0 +1,146 @@
+name: Build and Publish Tokens
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'tokens/**'
+      - 'config.json'
+  pull_request:
+    branches: [main]
+    paths:
+      - 'tokens/**'
+      - 'config.json'
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build tokens
+        run: npm run build
+
+      - name: Validate build output
+        run: |
+          if [ ! -d "build" ] || [ -z "$(ls -A build)" ]; then
+            echo "Build failed - no output generated"
+            exit 1
+          fi
+          echo "Build successful!"
+          find build -type f -name "*.css" -o -name "*.json" -o -name "*.js" | head -20
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: design-tokens-build
+          path: build/
+          retention-days: 30
+
+      - name: Comment build preview on PR
+        if: github.event_name == 'pull_request'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const path = require('path');
+            
+            // Read a sample of built tokens for preview
+            let cssPreview = '';
+            const cssPath = 'build/css/variables.css';
+            if (fs.existsSync(cssPath)) {
+              const content = fs.readFileSync(cssPath, 'utf8');
+              const lines = content.split('\n').slice(0, 30);
+              cssPreview = lines.join('\n');
+              if (content.split('\n').length > 30) {
+                cssPreview += '\n/* ... truncated ... */';
+              }
+            }
+            
+            const comment = `## 🎨 Token Build Preview
+            
+            Build completed successfully! Here's a preview of the generated CSS variables:
+            
+            \`\`\`css
+            ${cssPreview || 'No CSS output generated'}
+            \`\`\`
+            
+            <details>
+            <summary>📦 All generated formats</summary>
+            
+            - CSS Variables (\`build/css/\`)
+            - JavaScript/TypeScript (\`build/js/\`)
+            - JSON (\`build/json/\`)
+            - SCSS (\`build/scss/\`)
+            
+            </details>`;
+            
+            // Find existing comment to update
+            const { data: comments } = await github.rest.issues.listComments({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.payload.pull_request.number
+            });
+            
+            const botComment = comments.find(c => 
+              c.user.login === 'github-actions[bot]' && 
+              c.body.includes('Token Build Preview')
+            );
+            
+            if (botComment) {
+              await github.rest.issues.updateComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                comment_id: botComment.id,
+                body: comment
+              });
+            } else {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.payload.pull_request.number,
+                body: comment
+              });
+            }
+
+  publish:
+    needs: build
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Download build artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: design-tokens-build
+          path: build/
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          registry-url: '[npm.pkg.github.com](https://npm.pkg.github.com)'
+          scope: '@your-org'
+
+      - name: Publish to GitHub Packages
+        run: npm publish
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}

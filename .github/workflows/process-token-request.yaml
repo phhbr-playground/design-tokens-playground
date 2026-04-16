@@ -1,0 +1,171 @@
+name: Process Token Request
+
+on:
+  issues:
+    types: [opened, edited]
+
+permissions:
+  contents: write
+  issues: write
+  pull-requests: write
+
+jobs:
+  process-token:
+    if: contains(github.event.issue.labels.*.name, 'token-request')
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Parse issue and determine action
+        id: parse
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const issue = context.payload.issue;
+            const body = issue.body;
+            const labels = issue.labels.map(l => l.name);
+            
+            // Determine action type
+            let action = 'unknown';
+            if (labels.includes('create')) action = 'create';
+            else if (labels.includes('update')) action = 'update';
+            else if (labels.includes('delete')) action = 'delete';
+            
+            // Parse form fields from issue body
+            const parseField = (fieldName) => {
+              const regex = new RegExp(`### ${fieldName}\\s*\\n\\s*([\\s\\S]*?)(?=\\n### |$)`, 'i');
+              const match = body.match(regex);
+              return match ? match[1].trim() : '';
+            };
+            
+            const tokenData = {
+              action: action,
+              category: parseField('Token Category').toLowerCase(),
+              tokenName: parseField('Token Name'),
+              tokenPath: parseField('Token Path'),
+              tokenValue: parseField('Token Value') || parseField('New Value'),
+              tokenGroup: parseField('Token Group \\(Optional\\)'),
+              description: parseField('Description') || parseField('Reason for Change') || parseField('Reason for Deletion'),
+              issueNumber: issue.number,
+              issueTitle: issue.title
+            };
+            
+            // Set outputs
+            core.setOutput('action', tokenData.action);
+            core.setOutput('token_data', JSON.stringify(tokenData));
+            
+            console.log('Parsed token data:', tokenData);
+            return tokenData;
+
+      - name: Create branch for changes
+        id: branch
+        run: |
+          BRANCH_NAME="token-request/${{ github.event.issue.number }}-$(echo '${{ github.event.issue.title }}' | sed 's/\[.*\] //' | tr '[:upper:]' '[:lower:]' | tr ' ' '-' | tr -cd '[:alnum:]-' | head -c 50)"
+          echo "branch_name=$BRANCH_NAME" >> $GITHUB_OUTPUT
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git checkout -b "$BRANCH_NAME"
+
+      - name: Process token change
+        id: process
+        run: |
+          node .github/scripts/process-token.js '${{ steps.parse.outputs.token_data }}'
+
+      - name: Build tokens to validate
+        run: npm run build
+
+      - name: Commit and push changes
+        id: commit
+        run: |
+          git add tokens/
+          if git diff --staged --quiet; then
+            echo "changes=false" >> $GITHUB_OUTPUT
+            echo "No changes to commit"
+          else
+            git commit -m "feat(tokens): ${{ github.event.issue.title }}
+
+            Closes #${{ github.event.issue.number }}"
+            git push origin "${{ steps.branch.outputs.branch_name }}"
+            echo "changes=true" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Create Pull Request
+        if: steps.commit.outputs.changes == 'true'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const tokenData = JSON.parse('${{ steps.parse.outputs.token_data }}');
+            
+            const prBody = `## Token Change Request
+            
+            This PR was automatically generated from issue #${tokenData.issueNumber}.
+            
+            ### Details
+            - **Action**: ${tokenData.action.toUpperCase()}
+            - **Category**: ${tokenData.category}
+            - **Token**: ${tokenData.tokenName || tokenData.tokenPath}
+            ${tokenData.tokenValue ? `- **Value**: \`${tokenData.tokenValue}\`` : ''}
+            
+            ### Description
+            ${tokenData.description || 'No description provided.'}
+            
+            ---
+            
+            **Reviewers**: Please verify the token change is correct before merging.
+            
+            Closes #${tokenData.issueNumber}`;
+            
+            const pr = await github.rest.pulls.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title: context.payload.issue.title,
+              head: '${{ steps.branch.outputs.branch_name }}',
+              base: 'main',
+              body: prBody
+            });
+            
+            // Link PR to issue
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: tokenData.issueNumber,
+              body: `✅ Pull request created: #${pr.data.number}\n\nYour token change is ready for review.`
+            });
+            
+            // Add labels to PR
+            await github.rest.issues.addLabels({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: pr.data.number,
+              labels: ['token-change', tokenData.action]
+            });
+
+      - name: Handle no changes
+        if: steps.commit.outputs.changes == 'false'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.payload.issue.number,
+              body: `⚠️ No changes were made. This could mean:
+              - The token already exists with the same value
+              - The token path could not be found (for updates/deletes)
+              - There was an issue parsing the request
+              
+              Please verify the details and try again, or contact a maintainer for help.`
+            });
