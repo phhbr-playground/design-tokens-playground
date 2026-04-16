@@ -113,7 +113,7 @@ function getTokenFilePath(category) {
     mkdirSync(categoryDir, { recursive: true });
   }
   
-  return join(categoryDir, 'base.json');
+  return join(categoryDir, 'base.tokens.json');
 }
 
 /**
