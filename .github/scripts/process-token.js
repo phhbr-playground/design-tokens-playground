@@ -1,11 +1,11 @@
 #!/usr/bin/env node
 
-const fs = require('fs');
-const path = require('path');
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
+import { join } from 'node:path';
 
 const tokenData = JSON.parse(process.argv[2]);
 
-const TOKENS_DIR = path.join(process.cwd(), 'tokens');
+const TOKENS_DIR = join(process.cwd(), 'tokens');
 
 /**
  * Parse a token value, handling complex types like typography objects
@@ -106,22 +106,22 @@ function cleanEmptyParents(obj, pathStr) {
  * Get or create the token file for a category
  */
 function getTokenFilePath(category) {
-  const categoryDir = path.join(TOKENS_DIR, category);
+  const categoryDir = join(TOKENS_DIR, category);
   
   // Ensure category directory exists
-  if (!fs.existsSync(categoryDir)) {
-    fs.mkdirSync(categoryDir, { recursive: true });
+  if (!existsSync(categoryDir)) {
+    mkdirSync(categoryDir, { recursive: true });
   }
   
-  return path.join(categoryDir, 'base.json');
+  return join(categoryDir, 'base.json');
 }
 
 /**
  * Read token file or return empty object
  */
 function readTokenFile(filePath) {
-  if (fs.existsSync(filePath)) {
-    const content = fs.readFileSync(filePath, 'utf8');
+  if (existsSync(filePath)) {
+    const content = readFileSync(filePath, 'utf8');
     return JSON.parse(content);
   }
   return {};
@@ -131,7 +131,7 @@ function readTokenFile(filePath) {
  * Write token file with pretty formatting
  */
 function writeTokenFile(filePath, data) {
-  fs.writeFileSync(filePath, JSON.stringify(data, null, 2) + '\n');
+  writeFileSync(filePath, JSON.stringify(data, null, 2) + '\n');
 }
 
 /**
