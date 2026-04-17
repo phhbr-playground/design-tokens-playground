@@ -33,7 +33,7 @@ const argv = await yargs(hideBin(process.argv))
 
 const tokenData: TokenData = {
   action: "update",
-  category: [argv.category ?? ""],
+  category: argv.category ?? "",
   tokenPath: argv["token-path"],
   value: argv.value,
   description: argv.description,

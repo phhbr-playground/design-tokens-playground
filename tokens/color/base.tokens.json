@@ -3,7 +3,8 @@
     "color": {
       "bright-cyan": {
         "$value": "#03AACE",
-        "$description": "color bright cyan raw value"
+        "$description": "color bright cyan raw value",
+        "$type": "color"
       }
     }
   }

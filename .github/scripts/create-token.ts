@@ -38,7 +38,7 @@ const argv = await yargs(hideBin(process.argv))
 
 const tokenData: TokenData = {
   action: "create",
-  category: [argv.category ?? ""],
+  category: argv.category ?? "",
   name: argv.name,
   group: argv.group,
   value: argv.value,
