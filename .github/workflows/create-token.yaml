@@ -80,7 +80,7 @@ jobs:
             This PR was automatically generated from issue #${tokenData.issueNumber}.
 
             ### Details
-            - **Action**: ${tokenData.action.toUpperCase()}
+            - **Action**: CREATE
             - **Category**: ${tokenData.category}
             - **Token**: ${tokenData.tokenName || tokenData.tokenPath}
             ${tokenData.tokenValue ? `- **Value**: \`${tokenData.tokenValue}\`` : ''}
@@ -116,7 +116,7 @@ jobs:
               owner: context.repo.owner,
               repo: context.repo.repo,
               issue_number: pr.data.number,
-              labels: ['token-change', tokenData.action]
+              labels: ['token-change', 'create']
             });
       - name: Handle no changes
         if: steps.commit.outputs.changes == 'false'
