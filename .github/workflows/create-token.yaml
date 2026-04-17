@@ -53,12 +53,84 @@ jobs:
             --description "${{ steps.parse.outputs.parsed_description }}" \
             --group "${{ steps.parse.outputs.parsed_token-group }}"
 
-      - name: Create token file and PR
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Commit and push changes
+        id: commit
         run: |
-          git add .
-          git commit -m "Create token ${{ steps.parse.outputs.parsed_category }}.${{ steps.parse.outputs.parsed_name }}"
-          git push origin ${{ steps.branch.outputs.branch_name }}
+          git add tokens/
+          if git diff --staged --quiet; then
+            echo "changes=false" >> $GITHUB_OUTPUT
+            echo "No changes to commit"
+          else
+            git commit -m "feat(tokens): ${{ github.event.issue.title }}
 
-          gh pr create --title "Create token ${{ steps.parse.outputs.parsed_category }}.${{ steps.parse.outputs.parsed_name }}" --body "This PR creates the design token `${{ steps.parse.outputs.parsed_category }}.${{ steps.parse.outputs.parsed_name }}` as requested in #${{ github.event.issue.number }}." --base main
+            Closes #${{ github.event.issue.number }}"
+            git push origin "${{ steps.branch.outputs.branch_name }}"
+            echo "changes=true" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Create Pull Request
+        if: steps.commit.outputs.changes == 'true'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const tokenData = JSON.parse('${{ steps.parse.outputs.json }}');
+
+            const prBody = `## Token Change Request
+
+            This PR was automatically generated from issue #${tokenData.issueNumber}.
+
+            ### Details
+            - **Action**: ${tokenData.action.toUpperCase()}
+            - **Category**: ${tokenData.category}
+            - **Token**: ${tokenData.tokenName || tokenData.tokenPath}
+            ${tokenData.tokenValue ? `- **Value**: \`${tokenData.tokenValue}\`` : ''}
+
+            ### Description
+            ${tokenData.description || 'No description provided.'}
+
+            ---
+
+            **Reviewers**: Please verify the token change is correct before merging.
+
+            Closes #${tokenData.issueNumber}`;
+
+            const pr = await github.rest.pulls.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title: context.payload.issue.title,
+              head: '${{ steps.branch.outputs.branch_name }}',
+              base: 'main',
+              body: prBody
+            });
+
+            // Link PR to issue
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: tokenData.issueNumber,
+              body: `✅ Pull request created: #${pr.data.number}\n\nYour token change is ready for review.`
+            });
+
+            // Add labels to PR
+            await github.rest.issues.addLabels({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: pr.data.number,
+              labels: ['token-change', tokenData.action]
+            });
+      - name: Handle no changes
+        if: steps.commit.outputs.changes == 'false'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.payload.issue.number,
+              body: `⚠️ No changes were made. This could mean:
+              - The token already exists with the same value
+              - The token path could not be found (for updates/deletes)
+              - There was an issue parsing the request
+              
+              Please verify the details and try again, or contact a maintainer for help.`
+            });
