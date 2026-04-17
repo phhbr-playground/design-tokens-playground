@@ -10,6 +10,11 @@
         "$value": "#F25E86",
         "$description": "warm pink raw color",
         "$type": "color"
+      },
+      "primary": {
+        "$value": "{bright-cyan}",
+        "$description": "Primary brand color",
+        "$type": "color"
       }
     }
   }
