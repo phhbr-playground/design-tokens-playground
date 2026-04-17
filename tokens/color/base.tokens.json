@@ -5,6 +5,11 @@
         "$value": "#03AACE",
         "$description": "color bright cyan raw value",
         "$type": "color"
+      },
+      "warm-pink": {
+        "$value": "#F25E86",
+        "$description": "warm pink raw color",
+        "$type": "color"
       }
     }
   }
