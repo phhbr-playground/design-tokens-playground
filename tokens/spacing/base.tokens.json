@@ -1,11 +1,9 @@
 {
-  "mosaic": {
-    "spacing": {
-      "small": {
-        "$value": "clamp(1.125rem, 1.0739rem + 0.2273vw, 1.25rem)",
-        "$description": "Space small",
-        "$type": "spacing"
-      }
+  "spacing": {
+    "small": {
+      "$value": "clamp(1.125rem, 1.0739rem + 0.2273vw, 1.25rem)",
+      "$description": "Space small",
+      "$type": "spacing"
     }
   }
 }

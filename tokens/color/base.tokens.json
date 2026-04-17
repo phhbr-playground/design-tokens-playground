@@ -1,21 +1,19 @@
 {
-  "mosaic": {
-    "color": {
-      "bright-cyan": {
-        "$value": "#03AACE",
-        "$description": "color bright cyan raw value",
-        "$type": "color"
-      },
-      "warm-pink": {
-        "$value": "#F25E86",
-        "$description": "warm pink raw color",
-        "$type": "color"
-      },
-      "primary": {
-        "$value": "{mosaic.color.bright-cyan}",
-        "$description": "Primary brand color",
-        "$type": "color"
-      }
+  "color": {
+    "bright-cyan": {
+      "$value": "#03AACE",
+      "$description": "color bright cyan raw value",
+      "$type": "color"
+    },
+    "warm-pink": {
+      "$value": "#F25E86",
+      "$description": "warm pink raw color",
+      "$type": "color"
+    },
+    "primary": {
+      "$value": "{color.bright-cyan}",
+      "$description": "Primary brand color",
+      "$type": "color"
     }
   }
 }

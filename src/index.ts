@@ -12,6 +12,7 @@ const cssFileConfig: File = {
 const cssPlatformConfig: PlatformConfig = {
   transformGroup: "css",
   buildPath: "dist/css/",
+  prefix: "ds",
   options: {
     outputReferences: true,
   },
