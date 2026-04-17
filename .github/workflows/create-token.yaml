@@ -47,7 +47,7 @@ jobs:
 
       - name: Run create token script
         run: |
-          npx tsx .github/scripts/create-token.js -c "${{ steps.parse.outputs.parsed_category }}" -n "${{ steps.parse.outputs.parsed_name }}" --value "${{ steps.parse.outputs.parsed_value }}" -d "${{ steps.parse.outputs.parsed_description }}" -g "${{ steps.parse.outputs.parsed_token-group }}"
+          npx tsx .github/scripts/create-token.js -c "${{ steps.parse.outputs.parsed_category }}" -n "${{ steps.parse.outputs.parsed_token-name }}" --value "${{ steps.parse.outputs.parsed_token-value }}" -d "${{ steps.parse.outputs.parsed_description }}" -g "${{ steps.parse.outputs.parsed_token-group }}"
 
       - name: Create token file and PR
         run: |
