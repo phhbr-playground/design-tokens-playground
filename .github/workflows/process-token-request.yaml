@@ -60,25 +60,25 @@ jobs:
           LABELS="${{ toJSON(github.event.issue.labels.*.name) }}"
           if echo "$LABELS" | grep -q "create"; then
             ACTION="create"
+            PARSED_DATA="${{ steps.parse_create.outputs.json }}"
           elif echo "$LABELS" | grep -q "delete"; then
             ACTION="delete"
+            PARSED_DATA="${{ steps.parse_delete.outputs.json }}"
           elif echo "$LABELS" | grep -q "update"; then
             ACTION="update"
+            PARSED_DATA="${{ steps.parse_update.outputs.json }}"
           else
             ACTION=""
+            PARSED_DATA="{}"
           fi
           
-          # Get parsed output from whichever step ran
-          if [ "$ACTION" = "create" ]; then
-            PARSED_DATA="${{ steps.parse_create.outputs.json }}"
-          elif [ "$ACTION" = "delete" ]; then
-            PARSED_DATA="${{ steps.parse_delete.outputs.json }}"
-          elif [ "$ACTION" = "update" ]; then
-            PARSED_DATA="${{ steps.parse_update.outputs.json }}"
-          fi
-          
-          echo "action=$ACTION" >> $GITHUB_OUTPUT
-          echo "data=$PARSED_DATA" >> $GITHUB_OUTPUT
+          # Use delimiter for multiline output
+          {
+            echo "action=$ACTION"
+            echo "data<<EOF"
+            echo "$PARSED_DATA"
+            echo "EOF"
+          } >> $GITHUB_OUTPUT
 
       - name: Create branch for changes
         id: branch
@@ -97,22 +97,23 @@ jobs:
           ACTION='${{ steps.parsed.outputs.action }}'
           
           # Extract fields from JSON (compatible with issue-ops/parser output)
-          CATEGORY=$(echo "$DATA" | jq -r '.category // empty' 2>/dev/null || echo "")
-          NAME=$(echo "$DATA" | jq -r '.name // empty' 2>/dev/null || echo "")
-          VALUE=$(echo "$DATA" | jq -r '.value // empty' 2>/dev/null || echo "")
-          GROUP=$(echo "$DATA" | jq -r '.group // empty' 2>/dev/null || echo "")
+          CATEGORY=$(echo "$DATA" | jq -r '.category[0] // .category // empty' 2>/dev/null || echo "")
+          NAME=$(echo "$DATA" | jq -r '.["token-name"] // .name // empty' 2>/dev/null || echo "")
+          VALUE=$(echo "$DATA" | jq -r '.["token-value"] // .value // empty' 2>/dev/null || echo "")
+          GROUP=$(echo "$DATA" | jq -r '.["token-group"] // .group // empty' 2>/dev/null || echo "")
           TOKEN_PATH=$(echo "$DATA" | jq -r '.["token-path"] // empty' 2>/dev/null || echo "")
           DESCRIPTION=$(echo "$DATA" | jq -r '.description // empty' 2>/dev/null || echo "")
           
-          # Build arguments
-          ARGS="--action=$ACTION --category=$CATEGORY"
-          [ -n "$NAME" ] && ARGS="$ARGS --name=$NAME"
-          [ -n "$VALUE" ] && ARGS="$ARGS --value=$VALUE"
-          [ -n "$GROUP" ] && ARGS="$ARGS --group=$GROUP"
-          [ -n "$TOKEN_PATH" ] && ARGS="$ARGS --token-path=$TOKEN_PATH"
-          [ -n "$DESCRIPTION" ] && ARGS="$ARGS --description=$DESCRIPTION"
+          # Build arguments array with proper quoting
+          ARGS=(--action="$ACTION" --category="$CATEGORY")
+          [ -n "$NAME" ] && ARGS+=(--name="$NAME")
+          [ -n "$VALUE" ] && ARGS+=(--value="$VALUE")
+          [ -n "$GROUP" ] && ARGS+=(--group="$GROUP")
+          [ -n "$TOKEN_PATH" ] && ARGS+=(--token-path="$TOKEN_PATH")
+          [ -n "$DESCRIPTION" ] && ARGS+=(--description="$DESCRIPTION")
           
-          npx tsx .github/scripts/process-token.ts $ARGS
+          # Execute with proper argument passing
+          npx tsx .github/scripts/process-token.ts "${ARGS[@]}"
 
       - name: Build tokens to validate
         run: npm run build

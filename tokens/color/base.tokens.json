@@ -2,8 +2,8 @@
   "mosaic": {
     "color": {
       "bright-cyan": {
-        "value": "#03AACE",
-        "comment": "color bright cyan raw value"
+        "$value": "#03AACE",
+        "$description": "color bright cyan raw value"
       }
     }
   }
