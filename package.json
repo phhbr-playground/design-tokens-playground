@@ -7,7 +7,7 @@
     "dist"
   ],
   "scripts": {
-    "build": "node src/index.js"
+    "build": "tsx src/index.ts"
   },
   "repository": {
     "type": "git",
@@ -20,6 +20,9 @@
   },
   "homepage": "https://github.com/MotassemJa/design-tokens-playground#readme",
   "devDependencies": {
-    "style-dictionary": "^5.4.0"
+    "@types/node": "^20.0.0",
+    "style-dictionary": "^5.4.0",
+    "tsx": "^4.0.0",
+    "typescript": "^5.0.0"
   }
 }
