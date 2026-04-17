@@ -53,7 +53,7 @@ function setNestedValue(
   value: TokenValue | TokenObject
 ): void {
   const parts: string[] = pathStr.split(".");
-  let current: TokenObject | TokenValue = obj;
+  let current: TokenObject | TokenValue | any = obj;
 
   for (let i = 0; i < parts.length - 1; i++) {
     const part: string = parts[i];
@@ -71,7 +71,7 @@ function setNestedValue(
  */
 function deleteNestedValue(obj: TokenObject, pathStr: string): boolean {
   const parts: string[] = pathStr.split(".");
-  let current: TokenObject | TokenValue = obj;
+  let current: TokenObject | TokenValue | any = obj;
 
   for (let i = 0; i < parts.length - 1; i++) {
     const part: string = parts[i];
