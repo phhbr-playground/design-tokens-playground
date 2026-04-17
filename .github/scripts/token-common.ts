@@ -13,7 +13,7 @@ export interface TokenObject {
 
 export interface TokenData {
   action: "create" | "update" | "delete";
-  category: string[];
+  category: string;
   name?: string;
   group?: string;
   tokenPath?: string;
@@ -145,7 +145,7 @@ export function buildTokenPath(tokenName: string, tokenGroup?: string): string {
 }
 
 export function createToken(data: TokenData): void {
-  const filePath = getTokenFilePath(data.category[0]);
+  const filePath = getTokenFilePath(data.category);
   const tokens = readTokenFile(filePath);
 
   if (!data.name) {
@@ -161,7 +161,7 @@ export function createToken(data: TokenData): void {
   }
 
   if (data.category) {
-    tokenValue.$type = data.category[0];
+    tokenValue.$type = data.category;
   }
 
   if (getNestedValue(tokens, tokenPath)) {
@@ -177,7 +177,7 @@ export function createToken(data: TokenData): void {
 }
 
 export function updateToken(data: TokenData): void {
-  const filePath = getTokenFilePath(data.category[0]);
+  const filePath = getTokenFilePath(data.category);
   const tokens = readTokenFile(filePath);
 
   if (!data.tokenPath) {
@@ -208,7 +208,7 @@ export function updateToken(data: TokenData): void {
 }
 
 export function deleteToken(data: TokenData): void {
-  const filePath = getTokenFilePath(data.category[0]);
+  const filePath = getTokenFilePath(data.category);
   const tokens = readTokenFile(filePath);
 
   if (!data.tokenPath) {
