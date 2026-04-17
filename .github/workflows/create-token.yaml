@@ -82,8 +82,8 @@ jobs:
             ### Details
             - **Action**: CREATE
             - **Category**: ${tokenData.category}
-            - **Token**: ${tokenData.tokenName || tokenData.tokenPath}
-            ${tokenData.tokenValue ? `- **Value**: \`${tokenData.tokenValue}\`` : ''}
+            - **Token**: ${tokenData['token-name'] || tokenData['token-path']}
+            ${tokenData['token-value'] ? `- **Value**: \`${tokenData['token-value']}\`` : ''}
 
             ### Description
             ${tokenData.description || 'No description provided.'}
@@ -92,7 +92,7 @@ jobs:
 
             **Reviewers**: Please verify the token change is correct before merging.
 
-            Closes #${tokenData.issueNumber}`;
+            Closes #${{ github.event.issue.number }}.`;
 
             const pr = await github.rest.pulls.create({
               owner: context.repo.owner,
@@ -107,7 +107,7 @@ jobs:
             await github.rest.issues.createComment({
               owner: context.repo.owner,
               repo: context.repo.repo,
-              issue_number: tokenData.issueNumber,
+              issue_number: ${{ github.event.issue.number }},
               body: `✅ Pull request created: #${pr.data.number}\n\nYour token change is ready for review.`
             });
 
