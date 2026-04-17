@@ -56,7 +56,29 @@ jobs:
       - name: Consolidate parsed data
         id: parsed
         run: |
-          echo "json=${{ steps.parse_create.outputs.json || steps.parse_delete.outputs.json || steps.parse_update.outputs.json }}" >> $GITHUB_OUTPUT
+          # Extract action from labels
+          LABELS="${{ toJSON(github.event.issue.labels.*.name) }}"
+          if echo "$LABELS" | grep -q "create"; then
+            ACTION="create"
+          elif echo "$LABELS" | grep -q "delete"; then
+            ACTION="delete"
+          elif echo "$LABELS" | grep -q "update"; then
+            ACTION="update"
+          else
+            ACTION=""
+          fi
+          
+          # Get parsed output from whichever step ran
+          if [ "$ACTION" = "create" ]; then
+            PARSED_DATA="${{ steps.parse_create.outputs.json }}"
+          elif [ "$ACTION" = "delete" ]; then
+            PARSED_DATA="${{ steps.parse_delete.outputs.json }}"
+          elif [ "$ACTION" = "update" ]; then
+            PARSED_DATA="${{ steps.parse_update.outputs.json }}"
+          fi
+          
+          echo "action=$ACTION" >> $GITHUB_OUTPUT
+          echo "data=$PARSED_DATA" >> $GITHUB_OUTPUT
 
       - name: Create branch for changes
         id: branch
@@ -70,7 +92,27 @@ jobs:
       - name: Process token change
         id: process
         run: |
-          npx tsx .github/scripts/process-token.ts '${{ steps.parsed.outputs.json }}'
+          # Parse JSON to extract fields
+          DATA='${{ steps.parsed.outputs.data }}'
+          ACTION='${{ steps.parsed.outputs.action }}'
+          
+          # Extract fields from JSON (compatible with issue-ops/parser output)
+          CATEGORY=$(echo "$DATA" | jq -r '.category // empty' 2>/dev/null || echo "")
+          NAME=$(echo "$DATA" | jq -r '.name // empty' 2>/dev/null || echo "")
+          VALUE=$(echo "$DATA" | jq -r '.value // empty' 2>/dev/null || echo "")
+          GROUP=$(echo "$DATA" | jq -r '.group // empty' 2>/dev/null || echo "")
+          TOKEN_PATH=$(echo "$DATA" | jq -r '.["token-path"] // empty' 2>/dev/null || echo "")
+          DESCRIPTION=$(echo "$DATA" | jq -r '.description // empty' 2>/dev/null || echo "")
+          
+          # Build arguments
+          ARGS="--action=$ACTION --category=$CATEGORY"
+          [ -n "$NAME" ] && ARGS="$ARGS --name=$NAME"
+          [ -n "$VALUE" ] && ARGS="$ARGS --value=$VALUE"
+          [ -n "$GROUP" ] && ARGS="$ARGS --group=$GROUP"
+          [ -n "$TOKEN_PATH" ] && ARGS="$ARGS --token-path=$TOKEN_PATH"
+          [ -n "$DESCRIPTION" ] && ARGS="$ARGS --description=$DESCRIPTION"
+          
+          npx tsx .github/scripts/process-token.ts $ARGS
 
       - name: Build tokens to validate
         run: npm run build
@@ -95,17 +137,17 @@ jobs:
         uses: actions/github-script@v7
         with:
           script: |
-            const tokenData = JSON.parse('${{ steps.parsed.outputs.json }}');
+            const tokenData = JSON.parse('${{ steps.parsed.outputs.data }}');
             
             const prBody = `## Token Change Request
             
-            This PR was automatically generated from issue #${tokenData.issueNumber}.
+            This PR was automatically generated from issue #${{ github.event.issue.number }}.
             
             ### Details
-            - **Action**: ${tokenData.action.toUpperCase()}
+            - **Action**: ${{ steps.parsed.outputs.action }}
             - **Category**: ${tokenData.category}
-            - **Token**: ${tokenData.tokenName || tokenData.tokenPath}
-            ${tokenData.tokenValue ? `- **Value**: \`${tokenData.tokenValue}\`` : ''}
+            - **Token**: ${tokenData.name || tokenData['token-path']}
+            ${tokenData.value ? `- **Value**: \`${tokenData.value}\`` : ''}
             
             ### Description
             ${tokenData.description || 'No description provided.'}
@@ -114,7 +156,7 @@ jobs:
             
             **Reviewers**: Please verify the token change is correct before merging.
             
-            Closes #${tokenData.issueNumber}`;
+            Closes #${{ github.event.issue.number }}`;
             
             const pr = await github.rest.pulls.create({
               owner: context.repo.owner,
@@ -129,7 +171,7 @@ jobs:
             await github.rest.issues.createComment({
               owner: context.repo.owner,
               repo: context.repo.repo,
-              issue_number: tokenData.issueNumber,
+              issue_number: ${{ github.event.issue.number }},
               body: `✅ Pull request created: #${pr.data.number}\n\nYour token change is ready for review.`
             });
             
@@ -138,7 +180,7 @@ jobs:
               owner: context.repo.owner,
               repo: context.repo.repo,
               issue_number: pr.data.number,
-              labels: ['token-change', tokenData.action]
+              labels: ['token-change', '${{ steps.parsed.outputs.action }}']
             });
 
       - name: Handle no changes

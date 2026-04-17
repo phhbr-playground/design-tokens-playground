@@ -2,6 +2,8 @@
 
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
+import yargs from "yargs";
+import { hideBin } from "yargs/helpers";
 
 // Type definitions
 interface TokenValue {
@@ -16,14 +18,65 @@ interface TokenObject {
 interface TokenData {
   action: "create" | "update" | "delete";
   category: string;
-  tokenName?: string;
-  tokenGroup?: string;
+  name?: string;
+  group?: string;
   tokenPath?: string;
-  tokenValue?: string;
+  value?: string;
   description?: string;
 }
 
-const tokenData: TokenData = JSON.parse(process.argv[2] ?? "{}");
+// Parse command line arguments
+const argv = await yargs(hideBin(process.argv))
+  .option("action", {
+    alias: "a",
+    type: "string",
+    description: "Token action: create, update, or delete",
+    choices: ["create", "update", "delete"],
+    demandOption: true,
+  })
+  .option("category", {
+    alias: "c",
+    type: "string",
+    description: "Token category (e.g., color, typography)",
+    demandOption: true,
+  })
+  .option("name", {
+    alias: "n",
+    type: "string",
+    description: "Token name",
+  })
+  .option("value", {
+    alias: "v",
+    type: "string",
+    description: "Token value",
+  })
+  .option("group", {
+    alias: "g",
+    type: "string",
+    description: "Token group (dot-separated path)",
+  })
+  .option("token-path", {
+    alias: "p",
+    type: "string",
+    description: "Full token path (required for update/delete)",
+  })
+  .option("description", {
+    alias: "d",
+    type: "string",
+    description: "Token description",
+  })
+  .strict()
+  .parseAsync();
+
+const tokenData: TokenData = {
+  action: argv.action as "create" | "update" | "delete",
+  category: argv.category,
+  name: argv.name,
+  group: argv.group,
+  tokenPath: argv["token-path"],
+  value: argv.value,
+  description: argv.description,
+};
 
 const TOKENS_DIR: string = join(process.cwd(), "tokens");
 
@@ -178,11 +231,13 @@ function createToken(data: TokenData): void {
   const filePath: string = getTokenFilePath(data.category);
   const tokens: TokenObject = readTokenFile(filePath);
 
-  const tokenPath: string = buildTokenPath(
-    data.tokenName ?? "",
-    data.tokenGroup
-  );
-  const tokenValue: TokenValue = parseTokenValue(data.tokenValue ?? "");
+  if (!data.name) {
+    console.error("Token name is required for create action");
+    process.exit(1);
+  }
+
+  const tokenPath: string = buildTokenPath(data.name, data.group);
+  const tokenValue: TokenValue = parseTokenValue(data.value ?? "");
 
   // Add description/comment if provided
   if (data.description) {
@@ -211,7 +266,12 @@ function updateToken(data: TokenData): void {
   const filePath: string = getTokenFilePath(data.category);
   const tokens: TokenObject = readTokenFile(filePath);
 
-  const tokenPath: string = data.tokenPath ?? "";
+  if (!data.tokenPath) {
+    console.error("Token path (--token-path) is required for update action");
+    process.exit(1);
+  }
+
+  const tokenPath: string = data.tokenPath;
   const existing = getNestedValue(tokens, tokenPath);
 
   if (!existing) {
@@ -219,7 +279,7 @@ function updateToken(data: TokenData): void {
     process.exit(1);
   }
 
-  const tokenValue: TokenValue = parseTokenValue(data.tokenValue ?? "");
+  const tokenValue: TokenValue = parseTokenValue(data.value ?? "");
 
   // Preserve existing comment if no new description
   if (
@@ -247,7 +307,12 @@ function deleteToken(data: TokenData): void {
   const filePath: string = getTokenFilePath(data.category);
   const tokens: TokenObject = readTokenFile(filePath);
 
-  const tokenPath: string = data.tokenPath ?? "";
+  if (!data.tokenPath) {
+    console.error("Token path (--token-path) is required for delete action");
+    process.exit(1);
+  }
+
+  const tokenPath: string = data.tokenPath;
 
   if (!getNestedValue(tokens, tokenPath)) {
     console.log(`Token not found at path: ${tokenPath}`);

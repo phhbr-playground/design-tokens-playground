@@ -20,9 +20,11 @@
   },
   "homepage": "https://github.com/MotassemJa/design-tokens-playground#readme",
   "devDependencies": {
-    "@types/node": "^20.0.0",
+    "@types/node": "^25.0.0",
+    "@types/yargs": "^17.0.0",
     "style-dictionary": "^5.4.0",
     "tsx": "^4.0.0",
-    "typescript": "^5.0.0"
+    "typescript": "^5.0.0",
+    "yargs": "^18.0.0"
   }
 }
