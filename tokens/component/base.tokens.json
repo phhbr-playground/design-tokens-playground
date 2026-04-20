@@ -2,11 +2,6 @@
   "component": {
     "button": {
       "primary": {
-        "background": {
-          "$value": "{semantic.color.interactive.primary}",
-          "$type": "color",
-          "$description": "Primary button background"
-        },
         "text": {
           "$value": "{semantic.color.interactive.primary-text}",
           "$type": "color",
