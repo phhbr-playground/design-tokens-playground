@@ -2,10 +2,13 @@
  * Resolves token references in the format {path.to.token}
  */
 export class TokenReferenceResolver {
+  private tokens: Record<string, unknown> = {};
+
   /**
    * Resolve all token references in a token object
    */
   resolveReferences(tokens: Record<string, unknown>): Record<string, unknown> {
+    this.tokens = tokens;
     const resolved = JSON.parse(JSON.stringify(tokens));
     return this.resolveValue(resolved) as Record<string, unknown>;
   }
@@ -13,31 +16,43 @@ export class TokenReferenceResolver {
   /**
    * Recursively resolve references in values
    */
-  private resolveValue(value: unknown, path: string[] = []): unknown {
+  private resolveValue(value: unknown, path: string[] = [], stack: string[] = []): unknown {
     if (typeof value === "string") {
-      // Check for token references {path.to.token}
-      const referenceMatch = value.match(/^\{([^}]+)\}$/);
-      if (referenceMatch) {
-        return this.resolveReference(referenceMatch[1], path);
+      const exactReferenceMatch = value.match(/^\{([^}]+)\}$/);
+      if (exactReferenceMatch) {
+        return this.resolveReference(exactReferenceMatch[1], path, stack);
       }
 
-      // Handle complex values that might contain references
-      if (value.includes("{") && value.includes("}")) {
-        // For complex CSS functions, return as-is for now
+      if (!value.includes("{") || !value.includes("}")) {
         return value;
       }
 
-      return value;
+      const embeddedReferencePattern = /\{([^}]+)\}/g;
+      return value.replace(embeddedReferencePattern, (fullMatch, refPath) => {
+        const resolvedReference = this.resolveReference(refPath, path, stack);
+        if (typeof resolvedReference === "string" || typeof resolvedReference === "number") {
+          return String(resolvedReference);
+        }
+
+        if (typeof resolvedReference === "boolean") {
+          return resolvedReference ? "true" : "false";
+        }
+
+        console.warn(
+          `⚠️  Could not interpolate non-primitive reference: {${refPath}} at ${path.join(".")}`
+        );
+        return fullMatch;
+      });
     }
 
     if (Array.isArray(value)) {
-      return value.map((item, index) => this.resolveValue(item, [...path, index.toString()]));
+      return value.map((item, index) => this.resolveValue(item, [...path, index.toString()], stack));
     }
 
     if (value && typeof value === "object") {
       const result: Record<string, unknown> = {};
       for (const [key, val] of Object.entries(value)) {
-        result[key] = this.resolveValue(val, [...path, key]);
+        result[key] = this.resolveValue(val, [...path, key], stack);
       }
       return result;
     }
@@ -48,7 +63,14 @@ export class TokenReferenceResolver {
   /**
    * Resolve a single reference path
    */
-  private resolveReference(refPath: string, currentPath: string[]): unknown {
+  private resolveReference(refPath: string, currentPath: string[], stack: string[]): unknown {
+    if (stack.includes(refPath)) {
+      console.warn(
+        `⚠️  Circular reference detected: ${[...stack, refPath].join(" -> ")} at ${currentPath.join(".")}`
+      );
+      return `{${refPath}}`;
+    }
+
     const parts = refPath.split(".");
     let current: unknown = this.tokens;
 
@@ -63,18 +85,13 @@ export class TokenReferenceResolver {
 
     // If the referenced value is an object with $value, return the $value
     if (current && typeof current === "object" && "$value" in current) {
-      return (current as { $value: unknown }).$value;
+      return this.resolveValue(
+        (current as { $value: unknown }).$value,
+        [...currentPath, "$value"],
+        [...stack, refPath]
+      );
     }
 
-    return current;
-  }
-
-  private tokens: Record<string, unknown> = {};
-
-  /**
-   * Set the tokens object for reference resolution
-   */
-  setTokens(tokens: Record<string, unknown>): void {
-    this.tokens = tokens;
+    return this.resolveValue(current, currentPath, [...stack, refPath]);
   }
 }
