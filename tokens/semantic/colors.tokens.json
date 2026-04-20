@@ -1,0 +1,74 @@
+{
+  "semantic": {
+    "color": {
+      "interactive": {
+        "primary": {
+          "$value": "{color.bright-cyan}",
+          "$type": "color",
+          "$description": "Primary interactive element color for CTAs, links, and key interactions"
+        },
+        "secondary": {
+          "$value": "{color.warm-pink}",
+          "$type": "color",
+          "$description": "Secondary interactive element color for less prominent interactions"
+        }
+      },
+      "feedback": {
+        "success": {
+          "$value": "#10b981",
+          "$type": "color",
+          "$description": "Color indicating successful state or positive feedback"
+        },
+        "error": {
+          "$value": "#ef4444",
+          "$type": "color",
+          "$description": "Color indicating error state or negative feedback"
+        },
+        "warning": {
+          "$value": "#f59e0b",
+          "$type": "color",
+          "$description": "Color indicating warning state or caution"
+        },
+        "info": {
+          "$value": "#3b82f6",
+          "$type": "color",
+          "$description": "Color indicating informational state or neutral message"
+        }
+      },
+      "background": {
+        "default": {
+          "$value": "#ffffff",
+          "$type": "color",
+          "$description": "Default background color for main content areas"
+        },
+        "secondary": {
+          "$value": "#f3f4f6",
+          "$type": "color",
+          "$description": "Secondary background color for alternate sections"
+        },
+        "tertiary": {
+          "$value": "#e5e7eb",
+          "$type": "color",
+          "$description": "Tertiary background color for interactive elements"
+        }
+      },
+      "text": {
+        "primary": {
+          "$value": "#1f2937",
+          "$type": "color",
+          "$description": "Primary text color for main content"
+        },
+        "secondary": {
+          "$value": "#6b7280",
+          "$type": "color",
+          "$description": "Secondary text color for supporting information"
+        },
+        "disabled": {
+          "$value": "#d1d5db",
+          "$type": "color",
+          "$description": "Text color for disabled states"
+        }
+      }
+    }
+  }
+}

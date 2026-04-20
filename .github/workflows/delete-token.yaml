@@ -1,0 +1,110 @@
+name: Delete Design Token
+
+on:
+  issues:
+    types: [opened, edited]
+
+permissions:
+  contents: write
+  issues: write
+  pull-requests: write
+
+jobs:
+  delete-token:
+    if: contains(github.event.issue.labels.*.name, 'token-request') && contains(github.event.issue.labels.*.name, 'delete')
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+          cache: "npm"
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Parse delete issue
+        id: parse
+        uses: issue-ops/parser@v5
+        with:
+          body: ${{ github.event.issue.body }}
+          issue-form-template: delete-token.yaml
+
+      - name: Create branch for changes
+        id: branch
+        run: |
+          BRANCH_NAME="token-request/${{ github.event.issue.number }}-delete-$(echo '${{ github.event.issue.title }}' | sed 's/\[.*\] //' | tr '[:upper:]' '[:lower:]' | tr ' ' '-' | tr -cd '[:alnum:]-' | head -c 50)"
+          echo "branch_name=$BRANCH_NAME" >> $GITHUB_OUTPUT
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git checkout -b "$BRANCH_NAME"
+
+      - name: Run delete token script
+        run: |
+          npx tsx .github/scripts/delete-token.ts \
+            --category "${{ fromJson(steps.parse.outputs.parsed_category)[0] }}" \
+            --token-path "${{ steps.parse.outputs.parsed_token-path }}"
+
+      - name: Commit and push changes
+        id: commit
+        run: |
+          git add tokens/
+          if git diff --staged --quiet; then
+            echo "changes=false" >> $GITHUB_OUTPUT
+            echo "No changes to commit"
+          else
+            git commit -m "feat(tokens): ${{ github.event.issue.title }}
+
+            Closes #${{ github.event.issue.number }}"
+            git push origin "${{ steps.branch.outputs.branch_name }}"
+            echo "changes=true" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Create Pull Request
+        if: steps.commit.outputs.changes == 'true'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const tokenData = JSON.parse('${{ steps.parse.outputs.json }}');
+
+            const prBody = `## Token Change Request
+
+            This PR was automatically generated from issue #${tokenData.issueNumber}.
+
+            ### Details
+            - **Action**: DELETE
+            - **Category**: ${tokenData.category}
+            - **Token**: ${tokenData['token-path']}
+            ${tokenData.replacement ? `- **Replacement Token**: ${tokenData.replacement}` : ''}
+
+            ### Reason
+            ${tokenData.reason || 'No reason provided.'}
+
+            ---
+
+            **⚠️ Note**: This is a potentially breaking change. Make sure all consuming teams are aware of this deletion.
+
+            **Reviewers**: Please verify the token deletion is correct before merging.
+
+            Closes #${{ github.event.issue.number }}.`;
+
+            const pr = await github.rest.pulls.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title: context.payload.issue.title,
+              body: prBody,
+              head: "${{ steps.branch.outputs.branch_name }}",
+              base: context.payload.repository.default_branch,
+            });
+
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              body: `✅ Pull request #${pr.data.number} created to delete your token. Please review it: ${pr.data.html_url}`,
+            });

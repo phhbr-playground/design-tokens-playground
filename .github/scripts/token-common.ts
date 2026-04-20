@@ -1,5 +1,6 @@
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
+import { TokenValidator } from "./token-validator.ts";
 
 export interface TokenValue {
   $value: string | number | object | boolean;
@@ -171,9 +172,23 @@ export function createToken(data: TokenData): void {
   }
 
   setNestedValue(tokens, tokenPath, tokenValue);
+
+  // Validate before writing
+  const validator = new TokenValidator();
+  if (!validator.validate(tokens)) {
+    console.error("❌ Token validation failed:");
+    validator.getErrors().forEach((error) => console.error(`  - ${error}`));
+    process.exit(1);
+  }
+
+  if (validator.getWarnings().length > 0) {
+    console.warn("⚠️  Validation warnings:");
+    validator.getWarnings().forEach((warning) => console.warn(`  - ${warning}`));
+  }
+
   writeTokenFile(filePath, tokens);
 
-  console.log(`Created token: ${tokenPath} = ${JSON.stringify(tokenValue)}`);
+  console.log(`✅ Created token: ${tokenPath} = ${JSON.stringify(tokenValue)}`);
 }
 
 export function updateToken(data: TokenData): void {
@@ -202,9 +217,23 @@ export function updateToken(data: TokenData): void {
   }
 
   setNestedValue(tokens, tokenPath, tokenValue);
+
+  // Validate before writing
+  const validator = new TokenValidator();
+  if (!validator.validate(tokens)) {
+    console.error("❌ Token validation failed:");
+    validator.getErrors().forEach((error) => console.error(`  - ${error}`));
+    process.exit(1);
+  }
+
+  if (validator.getWarnings().length > 0) {
+    console.warn("⚠️  Validation warnings:");
+    validator.getWarnings().forEach((warning) => console.warn(`  - ${warning}`));
+  }
+
   writeTokenFile(filePath, tokens);
 
-  console.log(`Updated token: ${tokenPath} = ${JSON.stringify(tokenValue)}`);
+  console.log(`✅ Updated token: ${tokenPath} = ${JSON.stringify(tokenValue)}`);
 }
 
 export function deleteToken(data: TokenData): void {

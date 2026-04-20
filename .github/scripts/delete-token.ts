@@ -2,7 +2,7 @@
 
 import yargs from "yargs";
 import { hideBin } from "yargs/helpers";
-import { deleteToken, , type TokenData } from "./token-common.ts";
+import { deleteToken, type TokenData } from "./token-common.ts";
 
 const argv = await yargs(hideBin(process.argv))
   .option("category", {

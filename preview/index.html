@@ -1,0 +1,528 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Design Tokens Preview</title>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+          "Helvetica Neue", Arial, sans-serif;
+        background: #f5f5f5;
+        color: #333;
+      }
+
+      .container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 20px;
+      }
+
+      header {
+        background: white;
+        padding: 20px;
+        border-radius: 8px;
+        margin-bottom: 20px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      }
+
+      h1 {
+        margin-bottom: 10px;
+        color: #222;
+      }
+
+      .header-controls {
+        display: flex;
+        gap: 10px;
+        margin-top: 15px;
+        flex-wrap: wrap;
+      }
+
+      input[type="text"] {
+        flex: 1;
+        min-width: 200px;
+        padding: 8px 12px;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        font-size: 14px;
+      }
+
+      button {
+        padding: 8px 16px;
+        background: #3b82f6;
+        color: white;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 14px;
+        transition: background 0.2s;
+      }
+
+      button:hover {
+        background: #2563eb;
+      }
+
+      button:active {
+        background: #1d4ed8;
+      }
+
+      .categories {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+        gap: 20px;
+        margin-bottom: 20px;
+      }
+
+      .category-section {
+        background: white;
+        border-radius: 8px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        overflow: hidden;
+      }
+
+      .category-header {
+        background: #f0f9ff;
+        padding: 15px;
+        border-left: 4px solid #3b82f6;
+        font-weight: 600;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+
+      .category-count {
+        background: #e0e7ff;
+        color: #3b82f6;
+        padding: 2px 8px;
+        border-radius: 12px;
+        font-size: 12px;
+        font-weight: 600;
+      }
+
+      .tokens-list {
+        padding: 15px;
+        max-height: 500px;
+        overflow-y: auto;
+      }
+
+      .token-item {
+        padding: 12px;
+        margin-bottom: 10px;
+        background: #f9fafb;
+        border-radius: 4px;
+        border-left: 3px solid #e5e7eb;
+        transition: all 0.2s;
+      }
+
+      .token-item:hover {
+        background: #f3f4f6;
+        border-left-color: #3b82f6;
+      }
+
+      .token-name {
+        font-weight: 600;
+        color: #222;
+        margin-bottom: 4px;
+        word-break: break-all;
+        font-size: 13px;
+      }
+
+      .token-value-container {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin-bottom: 6px;
+      }
+
+      .token-value {
+        font-family: "Monaco", "Courier New", monospace;
+        font-size: 12px;
+        color: #666;
+        flex: 1;
+        word-break: break-all;
+        background: white;
+        padding: 4px 8px;
+        border-radius: 3px;
+      }
+
+      .copy-btn {
+        padding: 4px 8px;
+        font-size: 12px;
+        background: #10b981;
+        color: white;
+        border: none;
+        border-radius: 3px;
+        cursor: pointer;
+        transition: background 0.2s;
+      }
+
+      .copy-btn:hover {
+        background: #059669;
+      }
+
+      .copy-btn.copied {
+        background: #6b7280;
+      }
+
+      .token-description {
+        font-size: 12px;
+        color: #999;
+        margin-top: 4px;
+        font-style: italic;
+      }
+
+      .preview {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 40px;
+        height: 40px;
+        border-radius: 4px;
+        border: 1px solid #e5e7eb;
+        flex-shrink: 0;
+      }
+
+      .preview.color {
+        border: 2px solid #ddd;
+      }
+
+      .empty-state {
+        text-align: center;
+        padding: 40px 20px;
+        color: #999;
+      }
+
+      .empty-state p {
+        margin-bottom: 10px;
+      }
+
+      .filter-tags {
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+        margin-top: 10px;
+      }
+
+      .filter-tag {
+        padding: 4px 12px;
+        background: #e0e7ff;
+        color: #3b82f6;
+        border-radius: 12px;
+        font-size: 12px;
+        cursor: pointer;
+        border: 1px solid #c7d2fe;
+        transition: all 0.2s;
+      }
+
+      .filter-tag:hover {
+        background: #c7d2fe;
+      }
+
+      .filter-tag.active {
+        background: #3b82f6;
+        color: white;
+        border-color: #3b82f6;
+      }
+
+      @media (max-width: 768px) {
+        .categories {
+          grid-template-columns: 1fr;
+        }
+
+        .header-controls {
+          flex-direction: column;
+        }
+
+        input[type="text"] {
+          min-width: 100%;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <header>
+        <h1>🎨 Design Tokens Preview</h1>
+        <p style="color: #666; margin-bottom: 15px">
+          Browse all available design tokens from your system.
+        </p>
+        <div class="header-controls">
+          <input
+            type="text"
+            id="searchInput"
+            placeholder="Search tokens by name or value..."
+          />
+          <button id="resetBtn">Reset Filters</button>
+        </div>
+        <div class="filter-tags" id="filterTags"></div>
+      </header>
+
+      <div id="categories" class="categories">
+        <div class="empty-state">
+          <p>Loading tokens...</p>
+        </div>
+      </div>
+    </div>
+
+    <script type="module">
+      class TokenPreview {
+        constructor() {
+          this.tokens = {};
+          this.filteredTokens = {};
+          this.currentFilter = {
+            search: "",
+            categories: [],
+          };
+          this.init();
+        }
+
+        async init() {
+          await this.loadTokens();
+          this.setupEventListeners();
+          this.render();
+        }
+
+        async loadTokens() {
+          try {
+            // Load from the combined resolved tokens file
+            const response = await fetch("../dist/tokens.resolved.json");
+            if (response.ok) {
+              const allTokens = await response.json();
+
+              // The resolved tokens are already in the correct nested structure
+              this.tokens = allTokens;
+
+              console.log("Loaded token categories:", Object.keys(this.tokens));
+            } else {
+              throw new Error("Could not load tokens.resolved.json");
+            }
+
+            this.filteredTokens = JSON.parse(JSON.stringify(this.tokens));
+          } catch (error) {
+            console.error("Error loading tokens:", error);
+            document.getElementById("categories").innerHTML =
+              '<div class="empty-state"><p>Failed to load tokens. Make sure to build the project first.</p></div>';
+          }
+        }
+
+        setupEventListeners() {
+          document
+            .getElementById("searchInput")
+            .addEventListener("input", (e) => {
+              this.currentFilter.search = e.target.value.toLowerCase();
+              this.applyFilters();
+            });
+
+          document
+            .getElementById("resetBtn")
+            .addEventListener("click", () => {
+              this.currentFilter = { search: "", categories: [] };
+              document.getElementById("searchInput").value = "";
+              document
+                .querySelectorAll(".filter-tag")
+                .forEach((tag) => tag.classList.remove("active"));
+              this.applyFilters();
+            });
+        }
+
+        applyFilters() {
+          this.filteredTokens = JSON.parse(JSON.stringify(this.tokens));
+
+          // Apply search filter
+          if (this.currentFilter.search) {
+            const search = this.currentFilter.search;
+            Object.keys(this.filteredTokens).forEach((category) => {
+              this.filteredTokens[category] = this.filterTokensRecursive(
+                this.filteredTokens[category],
+                search
+              );
+            });
+          }
+
+          // Apply category filter
+          if (this.currentFilter.categories.length > 0) {
+            Object.keys(this.filteredTokens).forEach((category) => {
+              if (!this.currentFilter.categories.includes(category)) {
+                delete this.filteredTokens[category];
+              }
+            });
+          }
+
+          this.render();
+        }
+
+        filterTokensRecursive(obj, search) {
+          if (!obj || typeof obj !== "object") return obj;
+
+          const result = {};
+          let hasMatches = false;
+
+          for (const key in obj) {
+            const value = obj[key];
+
+            // Check if key matches
+            if (key.toLowerCase().includes(search)) {
+              result[key] = value;
+              hasMatches = true;
+              continue;
+            }
+
+            // Check if it's a token with $value
+            if (value.$value) {
+              const valueStr = JSON.stringify(value.$value).toLowerCase();
+              const description = (value.$description || "").toLowerCase();
+
+              if (
+                valueStr.includes(search) ||
+                description.includes(search)
+              ) {
+                result[key] = value;
+                hasMatches = true;
+              }
+            } else if (typeof value === "object") {
+              // Recursively filter nested objects
+              const filtered = this.filterTokensRecursive(value, search);
+              if (Object.keys(filtered).length > 0) {
+                result[key] = filtered;
+                hasMatches = true;
+              }
+            }
+          }
+
+          return hasMatches ? result : {};
+        }
+
+        render() {
+          const container = document.getElementById("categories");
+          const categories = Object.keys(this.filteredTokens);
+
+          if (categories.length === 0) {
+            container.innerHTML =
+              '<div class="empty-state"><p>No tokens found. Try adjusting your search.</p></div>';
+            return;
+          }
+
+          let html = "";
+
+          categories.forEach((category) => {
+            const tokens = this.filteredTokens[category];
+            const tokensList = this.flattenTokens(tokens);
+
+            if (tokensList.length === 0) return;
+
+            html += `
+              <div class="category-section">
+                <div class="category-header">
+                  <span>${category}</span>
+                  <span class="category-count">${tokensList.length}</span>
+                </div>
+                <div class="tokens-list">
+                  ${tokensList.map((token) => this.renderToken(token)).join("")}
+                </div>
+              </div>
+            `;
+          });
+
+          container.innerHTML = html;
+          this.attachCopyHandlers();
+        }
+
+        flattenTokens(obj, prefix = "") {
+          const result = [];
+
+          for (const key in obj) {
+            const value = obj[key];
+            const fullPath = prefix ? `${prefix}.${key}` : key;
+
+            if (value.$value !== undefined) {
+              result.push({
+                name: fullPath,
+                value: value.$value,
+                description: value.$description || "",
+                type: value.$type || "",
+              });
+            } else if (typeof value === "object") {
+              result.push(...this.flattenTokens(value, fullPath));
+            }
+          }
+
+          return result;
+        }
+
+        renderToken(token) {
+          let preview = "";
+
+          if (token.type === "color") {
+            const color = String(token.value);
+            if (this.isValidColor(color)) {
+              preview = `<div class="preview color" style="background-color: ${color};" title="${color}"></div>`;
+            }
+          }
+
+          return `
+            <div class="token-item">
+              <div style="display: flex; gap: 10px; align-items: flex-start;">
+                ${preview}
+                <div style="flex: 1;">
+                  <div class="token-name">${this.escapeHtml(token.name)}</div>
+                  <div class="token-value-container">
+                    <span class="token-value">${this.escapeHtml(String(token.value))}</span>
+                    <button class="copy-btn" data-copy="${String(token.value)}" title="Copy value">
+                      Copy
+                    </button>
+                  </div>
+                  ${
+                    token.description
+                      ? `<div class="token-description">${this.escapeHtml(token.description)}</div>`
+                      : ""
+                  }
+                </div>
+              </div>
+            </div>
+          `;
+        }
+
+        isValidColor(color) {
+          try {
+            const s = new Option().style;
+            s.color = color;
+            return s.color !== "";
+          } catch (e) {
+            return false;
+          }
+        }
+
+        attachCopyHandlers() {
+          document.querySelectorAll(".copy-btn").forEach((btn) => {
+            btn.addEventListener("click", () => {
+              const text = btn.getAttribute("data-copy");
+              navigator.clipboard.writeText(text).then(() => {
+                btn.classList.add("copied");
+                btn.textContent = "Copied!";
+                setTimeout(() => {
+                  btn.classList.remove("copied");
+                  btn.textContent = "Copy";
+                }, 2000);
+              });
+            });
+          });
+        }
+
+        escapeHtml(text) {
+          const div = document.createElement("div");
+          div.textContent = text;
+          return div.innerHTML;
+        }
+      }
+
+      // Initialize the preview
+      new TokenPreview();
+    </script>
+  </body>
+</html>
