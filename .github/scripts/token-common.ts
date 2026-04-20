@@ -18,6 +18,10 @@ export interface TokenData {
   hierarchyLevel?: string;
   domain?: string;
   theme?: string;
+  namespaceLevel?: string;
+  namespaceTheme?: string;
+  namespaceDomain?: string;
+  objectPath?: string;
   tokenType?: string;
   name?: string;
   group?: string;
@@ -52,6 +56,18 @@ function normalizeHierarchyLevel(level?: string): "universal" | "system" | "sema
   return "legacy";
 }
 
+function getNormalizedNamespaceLevel(data: TokenData): "universal" | "system" | "semantic" | "component" | "legacy" {
+  return normalizeHierarchyLevel(data.namespaceLevel ?? data.hierarchyLevel);
+}
+
+function getNormalizedNamespaceDomain(data: TokenData): string {
+  return sanitizeSegment(data.namespaceDomain ?? data.domain ?? "");
+}
+
+function getNormalizedNamespaceTheme(data: TokenData): string {
+  return sanitizeSegment(data.namespaceTheme ?? data.theme ?? "");
+}
+
 function sanitizeSegment(value: string): string {
   return value.trim().toLowerCase().replace(/\s+/g, "-").replace(/[^a-z0-9._-]/g, "");
 }
@@ -62,14 +78,14 @@ function toFilenameDomain(domain?: string): string {
 }
 
 function getTokenFilePathForHierarchy(data: TokenData): string {
-  const level = normalizeHierarchyLevel(data.hierarchyLevel);
+  const level = getNormalizedNamespaceLevel(data);
 
   // Legacy behavior for older issue templates/scripts.
   if (level === "legacy") {
     return getTokenFilePath(data.category ?? "other");
   }
 
-  const domain = toFilenameDomain(data.domain);
+  const domain = toFilenameDomain(data.namespaceDomain ?? data.domain);
   const layerDir = join(TOKENS_DIR, level);
 
   if (!existsSync(layerDir)) {
@@ -125,34 +141,37 @@ function findTokenFileByPath(tokenPath: string): string | undefined {
 }
 
 function buildHierarchicalTokenPath(data: TokenData): string {
-  if (!data.name) {
+  const level = getNormalizedNamespaceLevel(data);
+  const domain = getNormalizedNamespaceDomain(data);
+  const theme = getNormalizedNamespaceTheme(data);
+  const name = sanitizeSegment(data.name ?? "");
+  const objectPath = sanitizeSegment(data.objectPath ?? "").replace(/^\.+|\.+$/g, "");
+
+  // For create we accept either object-path directly or name fallback.
+  const relativePath = objectPath || name;
+  if (!relativePath) {
     return "";
   }
 
-  const level = normalizeHierarchyLevel(data.hierarchyLevel);
-  const name = sanitizeSegment(data.name);
-  const domain = sanitizeSegment(data.domain ?? "");
-  const theme = sanitizeSegment(data.theme ?? "");
-
   // Legacy path builder support for old templates.
   if (level === "legacy") {
-    return buildTokenPath(name, data.group);
+    return buildTokenPath(name || objectPath, data.group);
   }
 
   if (level === "universal") {
-    return `universal.${domain}.${name}`;
+    return `universal.${domain}.${relativePath}`;
   }
 
   if (level === "system") {
     const themePart = theme && theme !== "universal" ? `${theme}.` : "";
-    return `system.${themePart}${domain}.${name}`;
+    return `system.${themePart}${domain}.${relativePath}`;
   }
 
   if (level === "semantic") {
-    return `semantic.${domain}.${name}`;
+    return `semantic.${domain}.${relativePath}`;
   }
 
-  return `component.${name}`;
+  return `component.${relativePath}`;
 }
 
 export function parseTokenValue(value: string): TokenValue {
@@ -280,12 +299,16 @@ export function createToken(data: TokenData): void {
   const filePath = getTokenFilePathForHierarchy(data);
   const tokens = readTokenFile(filePath);
 
-  if (!data.name) {
-    console.error("Token name is required for create action");
+  if (!data.name && !data.objectPath) {
+    console.error("Either token name (--name) or object path (--object-path) is required for create action");
     process.exit(1);
   }
 
   const tokenPath = buildHierarchicalTokenPath(data);
+  if (!tokenPath) {
+    console.error("Could not determine token path from namespace/object inputs");
+    process.exit(1);
+  }
   const tokenValue = parseTokenValue(data.value ?? "");
 
   if (data.description) {
@@ -325,12 +348,12 @@ export function createToken(data: TokenData): void {
 }
 
 export function updateToken(data: TokenData): void {
-  if (!data.tokenPath) {
-    console.error("Token path (--token-path) is required for update action");
+  if (!data.tokenPath && !data.objectPath) {
+    console.error("Token path (--token-path) or object path (--object-path) is required for update action");
     process.exit(1);
   }
 
-  const tokenPath = data.tokenPath;
+  const tokenPath = data.tokenPath ?? buildHierarchicalTokenPath(data);
   const filePath = findTokenFileByPath(tokenPath) ?? getTokenFilePathForHierarchy(data);
   const tokens = readTokenFile(filePath);
   const existing = getNestedValue(tokens, tokenPath);
@@ -375,12 +398,12 @@ export function updateToken(data: TokenData): void {
 }
 
 export function deleteToken(data: TokenData): void {
-  if (!data.tokenPath) {
-    console.error("Token path (--token-path) is required for delete action");
+  if (!data.tokenPath && !data.objectPath) {
+    console.error("Token path (--token-path) or object path (--object-path) is required for delete action");
     process.exit(1);
   }
 
-  const tokenPath = data.tokenPath;
+  const tokenPath = data.tokenPath ?? buildHierarchicalTokenPath(data);
   const filePath = findTokenFileByPath(tokenPath) ?? getTokenFilePathForHierarchy(data);
   const tokens = readTokenFile(filePath);
 

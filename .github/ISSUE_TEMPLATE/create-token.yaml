@@ -18,23 +18,32 @@ body:
         See [Token Hierarchy Documentation](../../README.md#4-layer-token-hierarchy) for details.
 
   - type: dropdown
-    id: hierarchy-level
+    id: namespace-level
     attributes:
-      label: Hierarchy Level
-      description: Which layer should this token belong to?
+      label: Namespace - Level
+      description: "Line 1 / namespace input 1: choose the hierarchy layer"
       options:
-        - Universal (Layer 1 - Primitives)
-        - System (Layer 2 - Theme-aware)
-        - Semantic (Layer 3 - Intent-driven)
-        - Component (Layer 4 - UI Styles)
+        - universal
+        - system
+        - semantic
+        - component
     validations:
       required: true
 
-  - type: dropdown
-    id: domain
+  - type: input
+    id: namespace-theme
     attributes:
-      label: Domain/Category
-      description: What aspect of design does this token address?
+      label: Namespace - Theme
+      description: "Line 1 / namespace input 2: optional (mainly for system level)"
+      placeholder: "light, dark, high-contrast, or leave empty"
+    validations:
+      required: false
+
+  - type: dropdown
+    id: namespace-domain
+    attributes:
+      label: Namespace - Domain
+      description: "Line 1 / namespace input 3: design domain"
       options:
         - color
         - spacing
@@ -43,37 +52,25 @@ body:
         - duration
         - border
         - shadow
-        - button (Component only)
-        - card (Component only)
-        - input (Component only)
+        - button
+        - card
+        - input
         - other
     validations:
       required: true
 
-  - type: dropdown
-    id: theme
-    attributes:
-      label: Theme (System Level Only)
-      description: "**System layer tokens only**: Which theme does this token apply to?"
-      options:
-        - light
-        - dark
-        - high-contrast
-        - universal (no specific theme)
-    validations:
-      required: false
-
   - type: input
-    id: token-name
+    id: object-path
     attributes:
-      label: Token Name
+      label: Object Path
       description: |
-        Use kebab-case or dot notation following the naming pattern for your layer:
-        - Universal: `property` (e.g., `blue`, `16`)
-        - System: `concept.property` (e.g., `brand.primary`, `feedback.success`)
-        - Semantic: `intent.variant` (e.g., `action.primary`, `feedback.error`)
-        - Component: `component.variant.property` (e.g., `button.primary.background`)
-      placeholder: "e.g., primary-blue or primary"
+        Line 2: object path inside the selected namespace.
+        The final token path is assembled as:
+        - universal: `universal.{domain}.{object-path}`
+        - system: `system.{theme?}.{domain}.{object-path}`
+        - semantic: `semantic.{domain}.{object-path}`
+        - component: `component.{object-path}`
+      placeholder: "brand.primary or button.primary.background"
     validations:
       required: true
 
@@ -128,7 +125,7 @@ body:
       options:
         - label: I have checked that this token does not already exist in its layer
           required: true
-        - label: The token name follows the naming convention for its layer
+        - label: The namespace and object path follow naming conventions for the selected layer
           required: true
         - label: "(For non-universal): I am only referencing tokens from the layer directly above mine"
           required: true

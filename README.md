@@ -225,6 +225,33 @@ All tokens follow the DTCG Design Tokens Format Module:
 2. **Update Token**: Use "✏️ Update Existing Token" issue template
 3. **Delete Token**: Use "🗑️ Delete Token" issue template
 
+### Issue Form Input Model
+
+Token request forms now use a namespace-first format.
+
+- **Line 1: namespace**
+  - `namespace-level`: `universal` | `system` | `semantic` | `component`
+  - `namespace-theme`: optional (mainly for `system`)
+  - `namespace-domain`: domain/category (`color`, `spacing`, `typography`, etc.)
+- **Line 2: object-path**
+  - Dot notation for the object inside the namespace (for example `brand.primary` or `button.primary.background`)
+
+### Namespace To Token Path Transformation
+
+The automation assembles the final token path from the form inputs:
+
+- `universal` -> `universal.{namespace-domain}.{object-path}`
+- `system` -> `system.{namespace-theme?}.{namespace-domain}.{object-path}`
+- `semantic` -> `semantic.{namespace-domain}.{object-path}`
+- `component` -> `component.{object-path}`
+
+The hierarchy/inheritance rules are unchanged:
+
+- Universal defines primitive values only
+- System can inherit only from universal
+- Semantic can inherit only from system
+- Component can inherit only from semantic
+
 ### Manual Token Editing
 Edit JSON files in the `tokens/` directory following the DTCG format.
 

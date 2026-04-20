@@ -62,15 +62,13 @@ jobs:
       - name: Run create token script
         run: |
           npx tsx .github/scripts/create-token.ts \
-            --hierarchy-level "${{ steps.parse.outputs['parsed_hierarchy-level'] != '' && fromJson(steps.parse.outputs['parsed_hierarchy-level'])[0] || '' }}" \
-            --domain "${{ steps.parse.outputs.parsed_domain != '' && fromJson(steps.parse.outputs.parsed_domain)[0] || '' }}" \
-            --theme "${{ steps.parse.outputs.parsed_theme != '' && fromJson(steps.parse.outputs.parsed_theme)[0] || '' }}" \
+            --namespace-level "${{ steps.parse.outputs['parsed_namespace-level'] != '' && fromJson(steps.parse.outputs['parsed_namespace-level'])[0] || '' }}" \
+            --namespace-theme "${{ steps.parse.outputs['parsed_namespace-theme'] }}" \
+            --namespace-domain "${{ steps.parse.outputs['parsed_namespace-domain'] != '' && fromJson(steps.parse.outputs['parsed_namespace-domain'])[0] || '' }}" \
+            --object-path "${{ steps.parse.outputs['parsed_object-path'] }}" \
             --token-type "${{ steps.parse.outputs['parsed_token-type'] }}" \
-            --category "${{ steps.parse.outputs.parsed_category != '' && fromJson(steps.parse.outputs.parsed_category)[0] || '' }}" \
-            --name "${{ steps.parse.outputs.parsed_token-name }}" \
             --value "${{ steps.parse.outputs.parsed_token-value }}" \
-            --description "${{ steps.parse.outputs.parsed_description }}" \
-            --group "${{ steps.parse.outputs.parsed_token-group }}"
+            --description "${{ steps.parse.outputs.parsed_description }}"
 
       - name: Commit and push changes
         id: commit
@@ -108,9 +106,8 @@ jobs:
 
             ### Details
             - **Action**: CREATE
-            - **Hierarchy Level**: ${tokenData['hierarchy-level'] || 'N/A'}
-            - **Domain**: ${tokenData.domain || tokenData.category || 'N/A'}
-            - **Token**: ${tokenData['token-name'] || tokenData['token-path']}
+            - **Namespace**: ${tokenData['namespace-level'] || tokenData['hierarchy-level'] || 'N/A'} / ${tokenData['namespace-theme'] || '-'} / ${tokenData['namespace-domain'] || tokenData.domain || tokenData.category || 'N/A'}
+            - **Object Path**: ${tokenData['object-path'] || tokenData['token-name'] || tokenData['token-path'] || 'N/A'}
             ${tokenData['token-value'] ? `- **Value**: \`${tokenData['token-value']}\`` : ''}
             ${tokenData['token-type'] ? `- **Type**: \`${tokenData['token-type']}\`` : ''}
 

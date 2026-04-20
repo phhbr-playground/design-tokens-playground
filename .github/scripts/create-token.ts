@@ -5,17 +5,32 @@ import { hideBin } from "yargs/helpers";
 import { createToken, type TokenData } from "./token-common.ts";
 
 const argv = await yargs(hideBin(process.argv))
+  .option("namespace-level", {
+    type: "string",
+    description: "Namespace level (universal, system, semantic, component)",
+  })
+  .option("namespace-theme", {
+    type: "string",
+    description: "Namespace theme for system level (light, dark, high-contrast)",
+  })
+  .option("namespace-domain", {
+    type: "string",
+    description: "Namespace domain (color, spacing, typography, etc.)",
+  })
+  .option("object-path", {
+    alias: "o",
+    type: "string",
+    description: "Object path within the namespace (dot notation)",
+  })
   .option("hierarchy-level", {
     alias: "l",
     type: "string",
     description: "Hierarchy level (universal, system, semantic, component)",
-    demandOption: true,
   })
   .option("domain", {
     alias: "m",
     type: "string",
     description: "Token domain/category (color, spacing, typography, button, etc.)",
-    demandOption: true,
   })
   .option("theme", {
     alias: "t",
@@ -26,7 +41,6 @@ const argv = await yargs(hideBin(process.argv))
     alias: "n",
     type: "string",
     description: "Token name",
-    demandOption: true,
   })
   .option("value", {
     alias: "v",
@@ -54,12 +68,28 @@ const argv = await yargs(hideBin(process.argv))
     type: "string",
     description: "Token description",
   })
+  .check((args) => {
+    if (!args["namespace-level"] && !args["hierarchy-level"]) {
+      throw new Error("Provide --namespace-level (or legacy --hierarchy-level)");
+    }
+    if (!args["namespace-domain"] && !args.domain) {
+      throw new Error("Provide --namespace-domain (or legacy --domain)");
+    }
+    if (!args["object-path"] && !args.name) {
+      throw new Error("Provide --object-path (or legacy --name)");
+    }
+    return true;
+  })
   .strict()
   .parseAsync();
 
 const tokenData: TokenData = {
   action: "create",
   category: argv.category,
+  namespaceLevel: argv["namespace-level"],
+  namespaceTheme: argv["namespace-theme"],
+  namespaceDomain: argv["namespace-domain"],
+  objectPath: argv["object-path"],
   hierarchyLevel: argv["hierarchy-level"],
   domain: argv.domain,
   theme: argv.theme,

@@ -16,30 +16,59 @@ body:
         See [Token Hierarchy Documentation](../../README.md#token-hierarchy--inheritance-rules) for details.
 
   - type: dropdown
-    id: hierarchy-level
+    id: namespace-level
     attributes:
-      label: Hierarchy Level
-      description: Which layer contains the token being deleted?
+      label: Namespace - Level
+      description: "Line 1 / namespace input 1: hierarchy layer that contains this token"
       options:
-        - Universal (Layer 1 - Primitives)
-        - System (Layer 2 - Theme-aware)
-        - Semantic (Layer 3 - Intent-driven)
-        - Component (Layer 4 - UI Styles)
+        - universal
+        - system
+        - semantic
+        - component
     validations:
       required: true
 
   - type: input
-    id: token-path
+    id: namespace-theme
     attributes:
-      label: Token Path
+      label: Namespace - Theme
+      description: "Line 1 / namespace input 2: optional (mainly for system level)"
+      placeholder: "light, dark, high-contrast, or leave empty"
+    validations:
+      required: false
+
+  - type: dropdown
+    id: namespace-domain
+    attributes:
+      label: Namespace - Domain
+      description: "Line 1 / namespace input 3: design domain"
+      options:
+        - color
+        - spacing
+        - typography
+        - size
+        - duration
+        - border
+        - shadow
+        - button
+        - card
+        - input
+        - other
+    validations:
+      required: true
+
+  - type: input
+    id: object-path
+    attributes:
+      label: Object Path
       description: |
-        The full path to the token using dot notation.
+        Line 2: object path inside the selected namespace.
         Examples:
-        - Universal: `universal.color.deprecated-blue`
-        - System: `system.light.color.brand.old-primary`
-        - Semantic: `semantic.color.old-action.primary`
-        - Component: `component.legacy-button.primary.background`
-      placeholder: "semantic.color.deprecated.old-primary"
+        - universal + color + deprecated-blue => `object-path: deprecated-blue`
+        - system + light + color + brand.old-primary => `object-path: brand.old-primary`
+        - semantic + color + old-action.primary => `object-path: old-action.primary`
+        - component + legacy-button.primary.background => `object-path: legacy-button.primary.background`
+      placeholder: "deprecated.old-primary"
     validations:
       required: true
 

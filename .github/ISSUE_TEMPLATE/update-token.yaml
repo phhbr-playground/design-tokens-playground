@@ -13,30 +13,59 @@ body:
         See [Token Hierarchy Documentation](../../README.md#token-hierarchy--inheritance-rules) for details on inheritance rules.
 
   - type: dropdown
-    id: hierarchy-level
+    id: namespace-level
     attributes:
-      label: Hierarchy Level
-      description: Which layer contains the token being updated?
+      label: Namespace - Level
+      description: "Line 1 / namespace input 1: hierarchy layer that contains this token"
       options:
-        - Universal (Layer 1 - Primitives)
-        - System (Layer 2 - Theme-aware)
-        - Semantic (Layer 3 - Intent-driven)
-        - Component (Layer 4 - UI Styles)
+        - universal
+        - system
+        - semantic
+        - component
     validations:
       required: true
 
   - type: input
-    id: token-path
+    id: namespace-theme
     attributes:
-      label: Token Path
+      label: Namespace - Theme
+      description: "Line 1 / namespace input 2: optional (mainly for system level)"
+      placeholder: "light, dark, high-contrast, or leave empty"
+    validations:
+      required: false
+
+  - type: dropdown
+    id: namespace-domain
+    attributes:
+      label: Namespace - Domain
+      description: "Line 1 / namespace input 3: design domain"
+      options:
+        - color
+        - spacing
+        - typography
+        - size
+        - duration
+        - border
+        - shadow
+        - button
+        - card
+        - input
+        - other
+    validations:
+      required: true
+
+  - type: input
+    id: object-path
+    attributes:
+      label: Object Path
       description: |
-        The full path to the token using dot notation.
+        Line 2: object path inside the selected namespace.
         Examples:
-        - Universal: `universal.color.blue`
-        - System: `system.light.color.brand.primary`
-        - Semantic: `semantic.color.action.primary`
-        - Component: `component.button.primary.background`
-      placeholder: "semantic.color.action.primary"
+        - universal + color + blue => `object-path: blue`
+        - system + light + color + brand.primary => `object-path: brand.primary`
+        - semantic + color + action.primary => `object-path: action.primary`
+        - component + button.primary.background => `object-path: button.primary.background`
+      placeholder: "action.primary"
     validations:
       required: true
 
