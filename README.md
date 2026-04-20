@@ -220,15 +220,15 @@ All tokens are automatically validated:
 
 ## Publishing
 
-### Automated (Recommended)
-1. Create a GitHub Release
-2. `publish-npm.yaml` workflow automatically builds and publishes
+### Automated Build & Artifacts
+The repository automatically builds and publishes artifacts on every `main` branch push:
 
-### Manual
-```bash
-npm run build
-npm publish
-```
+- **GitHub Pages**: Live preview at `https://phhbr.github.io/design-tokens-playground/`
+- **Downloadable Artifacts**: Built tokens available for download from GitHub Actions
+- **Build Summary**: Detailed statistics and file information in the Actions logs
+
+### Manual Publishing (Optional)
+For NPM publishing, create a GitHub Release which triggers the `publish-npm.yaml` workflow.
 
 ## Token Naming Conventions
 
