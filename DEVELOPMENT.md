@@ -67,7 +67,7 @@ npm run clean
 npm test
 ```
 
-`npm test` runs `tests/run-tests.ts` against fixtures in `tests/fixtures/`.
+`npm test` runs the Jest suite in `tests/*.test.ts` against fixtures in `tests/fixtures/`.
 
 ## Preview
 

@@ -89,7 +89,9 @@ tests/
     invalid-naming/         # breaks Curtis Nathan kebab-case rule
     invalid-hierarchy/      # universal token referencing another layer
     invalid-reference/      # unresolved {path.to.token}
-  run-tests.ts
+  token-loader.test.ts
+  token-validator.test.ts
+  token-pipeline.test.ts
 
 .github/scripts/
   token-common.ts
@@ -118,7 +120,7 @@ Every token path has four group slots:
 - References may only point one layer up:
   universal → (none), system → universal, semantic → system, component → semantic.
 
-Validation is enforced at build time (`npm run build`) and by the test runner
+Validation is enforced at build time (`npm run build`) and by the Jest suite
 (`npm test`). Issue forms under `.github/ISSUE_TEMPLATE/` only ask for the four
 group fields — see the inline examples in each form for guidance.
 
