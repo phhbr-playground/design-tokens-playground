@@ -4,732 +4,436 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Design Tokens Preview</title>
-    <style>
-      * {
-        margin: 0;
-        padding: 0;
-        box-sizing: border-box;
-      }
-
-      body {
-        font-family: "Avenir Next", "Avenir", "Segoe UI", sans-serif;
-        background:
-          radial-gradient(circle at 15% 10%, rgba(147, 197, 253, 0.2), transparent 30%),
-          radial-gradient(circle at 85% 0%, rgba(125, 211, 252, 0.18), transparent 32%),
-          linear-gradient(180deg, #f7fbff 0%, #eef6ff 100%);
-        color: #1f2937;
-        min-height: 100vh;
-      }
-
-      .container {
-        max-width: 1480px;
-        margin: 0 auto;
-        padding: 28px;
-      }
-
-      header {
-        background: rgba(255, 255, 255, 0.92);
-        backdrop-filter: blur(8px);
-        padding: 28px;
-        border-radius: 18px;
-        margin-bottom: 24px;
-        border: 1px solid rgba(147, 197, 253, 0.35);
-        box-shadow: 0 20px 45px rgba(37, 99, 235, 0.08);
-      }
-
-      h1 {
-        margin-bottom: 10px;
-        color: #0f172a;
-        letter-spacing: 0.01em;
-        font-size: clamp(1.7rem, 1.5rem + 1vw, 2.25rem);
-      }
-
-      .header-controls {
-        display: flex;
-        gap: 10px;
-        margin-top: 15px;
-        flex-wrap: wrap;
-      }
-
-      input[type="text"] {
-        flex: 1;
-        min-width: 260px;
-        padding: 12px 14px;
-        border: 1px solid #bfdbfe;
-        border-radius: 10px;
-        font-size: 14px;
-        background: #f8fbff;
-        transition: border-color 0.2s, box-shadow 0.2s;
-      }
-
-      input[type="text"]:focus {
-        outline: none;
-        border-color: #3b82f6;
-        box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.16);
-      }
-
-      button {
-        padding: 10px 16px;
-        background: linear-gradient(135deg, #2563eb, #3b82f6);
-        color: white;
-        border: none;
-        border-radius: 10px;
-        cursor: pointer;
-        font-size: 14px;
-        font-weight: 600;
-        transition: transform 0.15s, filter 0.2s;
-      }
-
-      button:hover {
-        transform: translateY(-1px);
-        filter: brightness(1.05);
-      }
-
-      button:active {
-        transform: translateY(0);
-        filter: brightness(0.98);
-      }
-
-      .categories {
-        display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(420px, 1fr));
-        gap: 24px;
-        margin-bottom: 20px;
-      }
-
-      .category-section {
-        background: rgba(255, 255, 255, 0.95);
-        border-radius: 16px;
-        border: 1px solid #dbeafe;
-        box-shadow: 0 14px 30px rgba(30, 64, 175, 0.08);
-        overflow: hidden;
-        transition: transform 0.2s, box-shadow 0.2s;
-      }
-
-      .category-section:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 18px 36px rgba(30, 64, 175, 0.14);
-      }
-
-      .category-header {
-        background: linear-gradient(180deg, #f5f9ff 0%, #eff6ff 100%);
-        padding: 16px 18px;
-        border-left: 5px solid #3b82f6;
-        font-weight: 600;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        color: #1e3a8a;
-      }
-
-      .category-count {
-        background: #e0e7ff;
-        color: #3b82f6;
-        padding: 2px 8px;
-        border-radius: 12px;
-        font-size: 12px;
-        font-weight: 600;
-      }
-
-      .tokens-list {
-        padding: 18px;
-        max-height: 680px;
-        overflow-y: auto;
-      }
-
-      .token-item {
-        padding: 18px;
-        margin-bottom: 14px;
-        background: linear-gradient(180deg, #ffffff 0%, #f8fbff 100%);
-        border-radius: 12px;
-        border: 1px solid #dbeafe;
-        border-left: 5px solid #bfdbfe;
-        transition: all 0.2s ease;
-      }
-
-      .token-item:hover {
-        background: #ffffff;
-        border-left-color: #3b82f6;
-        box-shadow: 0 10px 22px rgba(59, 130, 246, 0.12);
-      }
-
-      .token-name {
-        font-weight: 600;
-        color: #0f172a;
-        margin-bottom: 10px;
-        word-break: break-all;
-        font-size: 14px;
-      }
-
-      .token-value-container {
-        display: flex;
-        align-items: center;
-        gap: 8px;
-        margin-bottom: 6px;
-      }
-
-      .token-value {
-        font-family: "Monaco", "Courier New", monospace;
-        font-size: 11px;
-        color: #334155;
-        flex: 1;
-        word-break: break-all;
-        background: #f8fafc;
-        padding: 6px 8px;
-        border: 1px solid #e2e8f0;
-        border-radius: 6px;
-      }
-
-      .token-props {
-        display: flex;
-        flex-direction: column;
-        gap: 8px;
-      }
-
-      .token-prop-row {
-        display: grid;
-        grid-template-columns: auto 1fr auto;
-        gap: 10px;
-        align-items: start;
-      }
-
-      .token-prop-name {
-        font-family: "Monaco", "Courier New", monospace;
-        font-size: 10px;
-        color: #1e3a8a;
-        background: #eff6ff;
-        border: 1px solid #bfdbfe;
-        border-radius: 3px;
-        padding: 4px 6px;
-        text-align: center;
-        word-break: break-word;
-        min-width: 52px;
-      }
-
-      .token-prop-name.subtle {
-        background: #f8fafc;
-        color: #64748b;
-        border-color: #e2e8f0;
-        min-width: 40px;
-      }
-
-      .token-value-grid {
-        display: grid;
-        grid-template-columns: 1fr;
-        gap: 8px;
-      }
-
-      .token-value-block {
-        min-width: 0;
-      }
-
-      .token-value-label {
-        font-size: 10px;
-        color: #475569;
-        margin-bottom: 3px;
-        font-weight: 600;
-      }
-
-      .copy-btn {
-        padding: 7px 10px;
-        font-size: 12px;
-        background: linear-gradient(135deg, #0ea5e9, #0284c7);
-        color: white;
-        border: none;
-        border-radius: 6px;
-        cursor: pointer;
-        transition: filter 0.2s;
-      }
-
-      .copy-btn:hover {
-        filter: brightness(1.08);
-      }
-
-      .copy-btn.copied {
-        background: #6b7280;
-      }
-
-      .token-description {
-        font-size: 12px;
-        color: #64748b;
-        margin-top: 10px;
-        font-style: italic;
-      }
-
-      .preview {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        width: 52px;
-        height: 52px;
-        border-radius: 10px;
-        border: 1px solid #e5e7eb;
-        flex-shrink: 0;
-      }
-
-      .preview.color {
-        border: 2px solid #ddd;
-      }
-
-      .empty-state {
-        text-align: center;
-        padding: 56px 24px;
-        color: #64748b;
-      }
-
-      .empty-state p {
-        margin-bottom: 10px;
-      }
-
-      .filter-tags {
-        display: flex;
-        gap: 8px;
-        flex-wrap: wrap;
-        margin-top: 10px;
-      }
-
-      .filter-tag {
-        padding: 6px 13px;
-        background: #eff6ff;
-        color: #1d4ed8;
-        border-radius: 12px;
-        font-size: 12px;
-        cursor: pointer;
-        border: 1px solid #bfdbfe;
-        transition: all 0.2s;
-      }
-
-      .filter-tag:hover {
-        background: #c7d2fe;
-      }
-
-      .filter-tag.active {
-        background: #3b82f6;
-        color: white;
-        border-color: #3b82f6;
-      }
-
-      @media (max-width: 768px) {
-        .container {
-          padding: 16px;
-        }
-
-        header {
-          padding: 18px;
-          border-radius: 14px;
-        }
-
-        .categories {
-          grid-template-columns: 1fr;
-          gap: 16px;
-        }
-
-        .header-controls {
-          flex-direction: column;
-        }
-
-        input[type="text"] {
-          min-width: 100%;
-        }
-
-        .token-prop-row {
-          grid-template-columns: 1fr;
-        }
-
-        .token-value-grid {
-          grid-template-columns: 1fr;
-        }
-      }
-    </style>
+    <link rel="stylesheet" href="styles.css" />
   </head>
   <body>
     <div class="container">
-      <header>
-        <h1>🎨 Design Tokens Preview</h1>
-        <p style="color: #666; margin-bottom: 15px">
-          Browse all available design tokens from your system.
+      <!-- ── Header ───────────────────────────────────────── -->
+      <header class="header">
+        <h1 class="header-title">🎨 Design Tokens</h1>
+        <p class="header-sub">
+          Browse, search, and copy tokens. Click any value to copy it.
+          Click a <span class="header-hint-ref">reference</span> to jump to its definition.
         </p>
-        <div class="header-controls">
+        <div class="search-row">
           <input
+            class="search-input"
             type="text"
             id="searchInput"
-            placeholder="Search tokens by name or value..."
+            placeholder="Search by name, value, description…"
+            autocomplete="off"
+            spellcheck="false"
           />
-          <button id="resetBtn">Reset Filters</button>
+          <button class="reset-btn" id="resetBtn">Reset</button>
         </div>
         <div class="filter-tags" id="filterTags"></div>
       </header>
 
-      <div id="categories" class="categories">
-        <div class="empty-state">
-          <p>Loading tokens...</p>
-        </div>
-      </div>
+      <!-- ── Token grid ────────────────────────────────────── -->
+      <main id="categories" class="categories-grid">
+        <div class="empty-state">Loading tokens…</div>
+      </main>
     </div>
 
+    <!-- Toast notification -->
+    <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
     <script type="module">
+      /* ============================================================
+         TokenPreview — loads resolved + raw tokens, renders cards
+         with copyable values and clickable {reference} badges.
+         ============================================================ */
       class TokenPreview {
         constructor() {
-          this.tokens = {};
-          this.rawTokens = {};
+          this.tokens = {};        // resolved token tree  (dist/tokens.resolved.json)
+          this.rawTokens = {};     // raw token tree       (dist/tokens.json)
           this.tokenEntries = [];
-          this.filteredTokenEntries = [];
-          this.currentFilter = {
-            search: "",
-            categories: [],
-          };
+          this.filteredEntries = [];
+          this.filter = { search: "", categories: [] };
+          this._toastTimer = null;
           this.init();
         }
 
+        /* ── Bootstrap ─────────────────────────────────────── */
+
         async init() {
           await this.loadTokens();
-          this.setupEventListeners();
+          this.setupSearch();
           this.render();
         }
 
         async loadTokens() {
           try {
-            const [resolvedResponse, rawResponse] = await Promise.all([
+            const [r1, r2] = await Promise.all([
               fetch("../dist/tokens.resolved.json"),
               fetch("../dist/tokens.json"),
             ]);
-
-            if (!resolvedResponse.ok) {
-              throw new Error("Could not load tokens.resolved.json");
-            }
-
-            if (!rawResponse.ok) {
-              throw new Error("Could not load tokens.json");
-            }
-
-            this.tokens = await resolvedResponse.json();
-            this.rawTokens = await rawResponse.json();
-            this.tokenEntries = this.flattenTokens(this.tokens, this.rawTokens);
-            this.filteredTokenEntries = [...this.tokenEntries];
+            if (!r1.ok) throw new Error("tokens.resolved.json not found");
+            if (!r2.ok) throw new Error("tokens.json not found");
+            this.tokens = await r1.json();
+            this.rawTokens = await r2.json();
+            this.tokenEntries = this.flatten(this.tokens, this.rawTokens);
+            this.filteredEntries = [...this.tokenEntries];
             this.renderFilterTags();
-
-            console.log("Loaded token categories:", Object.keys(this.tokens));
-          } catch (error) {
-            console.error("Error loading tokens:", error);
-            document.getElementById("categories").innerHTML =
-              '<div class="empty-state"><p>Failed to load tokens. Make sure to build the project first.</p></div>';
+          } catch (err) {
+            console.error(err);
+            document.getElementById("categories").innerHTML = `
+              <div class="empty-state">
+                ⚠ Failed to load tokens.<br>
+                <small>Run <code>npm run build</code>, then serve via <code>npm run preview</code>.</small>
+              </div>`;
           }
         }
 
-        setupEventListeners() {
-          document
-            .getElementById("searchInput")
-            .addEventListener("input", (e) => {
-              this.currentFilter.search = e.target.value.toLowerCase();
-              this.applyFilters();
-            });
+        /* ── Search & filter ───────────────────────────────── */
 
-          document
-            .getElementById("resetBtn")
-            .addEventListener("click", () => {
-              this.currentFilter = { search: "", categories: [] };
-              document.getElementById("searchInput").value = "";
-              this.applyFilters();
-            });
+        setupSearch() {
+          document.getElementById("searchInput").addEventListener("input", (e) => {
+            this.filter.search = e.target.value.toLowerCase();
+            this.applyFilters();
+          });
+          document.getElementById("resetBtn").addEventListener("click", () => {
+            this.filter = { search: "", categories: [] };
+            document.getElementById("searchInput").value = "";
+            this.applyFilters();
+          });
         }
 
         applyFilters() {
-          const search = this.currentFilter.search;
-          this.filteredTokenEntries = this.tokenEntries.filter((entry) => {
-            const category = entry.name.split(".")[0];
+          const s = this.filter.search;
+          this.filteredEntries = this.tokenEntries.filter((t) => {
+            const cat = t.name.split(".")[0];
             if (
-              this.currentFilter.categories.length > 0 &&
-              !this.currentFilter.categories.includes(category)
-            ) {
+              this.filter.categories.length &&
+              !this.filter.categories.includes(cat)
+            )
               return false;
-            }
-
-            if (!search) {
-              return true;
-            }
-
-            const nameStr = entry.name.toLowerCase();
-            const descriptionStr = (entry.description || "").toLowerCase();
-            const rawStr = this.stringifyValue(entry.rawValue).toLowerCase();
-            const resolvedStr = this
-              .stringifyValue(entry.resolvedValue)
-              .toLowerCase();
-
-            return (
-              nameStr.includes(search) ||
-              descriptionStr.includes(search) ||
-              rawStr.includes(search) ||
-              resolvedStr.includes(search)
-            );
+            if (!s) return true;
+            return [t.name, t.description, this.str(t.rawValue), this.str(t.resolvedValue)]
+              .some((x) => (x || "").toLowerCase().includes(s));
           });
-
           this.renderFilterTags();
           this.render();
         }
 
         renderFilterTags() {
-          const filterTags = document.getElementById("filterTags");
-          const categories = [...new Set(this.tokenEntries.map((entry) => entry.name.split(".")[0]))].sort();
-
-          filterTags.innerHTML = categories
-            .map((category) => {
-              const isActive = this.currentFilter.categories.includes(category);
-              return `<button class="filter-tag ${isActive ? "active" : ""}" data-category="${this.escapeHtml(
-                category
-              )}">${this.escapeHtml(category)}</button>`;
+          const el = document.getElementById("filterTags");
+          const cats = [
+            ...new Set(this.tokenEntries.map((t) => t.name.split(".")[0])),
+          ].sort();
+          el.innerHTML = cats
+            .map((cat) => {
+              const active = this.filter.categories.includes(cat);
+              return `<button class="filter-tag${active ? " active" : ""}" data-cat="${this.escAttr(cat)}">${this.escHtml(cat)}</button>`;
             })
             .join("");
-
-          filterTags.querySelectorAll(".filter-tag").forEach((btn) => {
+          el.querySelectorAll(".filter-tag").forEach((btn) => {
             btn.addEventListener("click", () => {
-              const category = btn.getAttribute("data-category");
-              if (this.currentFilter.categories.includes(category)) {
-                this.currentFilter.categories = this.currentFilter.categories.filter(
-                  (item) => item !== category
-                );
-              } else {
-                this.currentFilter.categories.push(category);
-              }
+              const cat = btn.dataset.cat;
+              const i = this.filter.categories.indexOf(cat);
+              if (i >= 0) this.filter.categories.splice(i, 1);
+              else this.filter.categories.push(cat);
               this.applyFilters();
             });
           });
         }
 
-        getByPath(obj, path) {
-          return path.split(".").reduce((acc, segment) => {
-            if (!acc || typeof acc !== "object") {
-              return undefined;
-            }
-            return acc[segment];
-          }, obj);
-        }
-
-        stringifyValue(value) {
-          if (value === undefined) {
-            return "";
-          }
-
-          if (typeof value === "string") {
-            return value;
-          }
-
-          if (value === null || typeof value !== "object") {
-            return String(value);
-          }
-
-          return JSON.stringify(value);
-        }
-
-        buildPropertyRows(rawValue, resolvedValue) {
-          const rawIsObject = rawValue !== null && typeof rawValue === "object";
-          const resolvedIsObject =
-            resolvedValue !== null && typeof resolvedValue === "object";
-
-          if (
-            (rawIsObject && Array.isArray(rawValue)) ||
-            (resolvedIsObject && Array.isArray(resolvedValue))
-          ) {
-            return [
-              {
-                prop: "value",
-                calculation: this.stringifyValue(rawValue),
-                resolved: this.stringifyValue(resolvedValue),
-              },
-            ];
-          }
-
-          if (rawIsObject || resolvedIsObject) {
-            const rawObject = rawIsObject ? rawValue : {};
-            const resolvedObject = resolvedIsObject ? resolvedValue : {};
-            const keys = [...new Set([...Object.keys(rawObject), ...Object.keys(resolvedObject)])].sort();
-
-            return keys.map((key) => ({
-              prop: key,
-              calculation: this.stringifyValue(rawObject[key]),
-              resolved: this.stringifyValue(resolvedObject[key]),
-            }));
-          }
-
-          return [
-            {
-              prop: "value",
-              calculation: this.stringifyValue(rawValue),
-              resolved: this.stringifyValue(resolvedValue),
-            },
-          ];
-        }
-
-        flattenTokens(obj, rawObj, prefix = "") {
-          if (!obj || typeof obj !== "object") {
-            return [];
-          }
-
-          const result = [];
-
-          for (const key in obj) {
-            const value = obj[key];
-            const rawValue = rawObj && typeof rawObj === "object" ? rawObj[key] : undefined;
-            const fullPath = prefix ? `${prefix}.${key}` : key;
-
-            if (value && typeof value === "object" && value.$value !== undefined) {
-              const rawToken = this.getByPath(this.rawTokens, fullPath) || rawValue || {};
-              result.push({
-                name: fullPath,
-                resolvedValue: value.$value,
-                rawValue: rawToken.$value !== undefined ? rawToken.$value : value.$value,
-                description: value.$description || rawToken.$description || "",
-                type: value.$type || rawToken.$type || "",
-              });
-            } else if (value && typeof value === "object") {
-              result.push(...this.flattenTokens(value, rawValue, fullPath));
-            }
-          }
-
-          return result;
-        }
+        /* ── Render ────────────────────────────────────────── */
 
         render() {
-          const container = document.getElementById("categories");
-
-          if (this.filteredTokenEntries.length === 0) {
-            container.innerHTML =
-              '<div class="empty-state"><p>No tokens found. Try adjusting your search.</p></div>';
+          const el = document.getElementById("categories");
+          if (!this.filteredEntries.length) {
+            el.innerHTML = '<div class="empty-state">No tokens found. Try adjusting your search.</div>';
             return;
           }
 
-          const grouped = this.filteredTokenEntries.reduce((acc, token) => {
-            const category = token.name.split(".")[0];
-            if (!acc[category]) {
-              acc[category] = [];
-            }
-            acc[category].push(token);
-            return acc;
-          }, {});
-
-          const categories = Object.keys(grouped).sort();
-
-          let html = "";
-
-          categories.forEach((category) => {
-            const tokensList = grouped[category];
-
-            html += `
-              <div class="category-section">
-                <div class="category-header">
-                  <span>${this.escapeHtml(category)}</span>
-                  <span class="category-count">${tokensList.length}</span>
-                </div>
-                <div class="tokens-list">
-                  ${tokensList.map((token) => this.renderToken(token)).join("")}
-                </div>
-              </div>
-            `;
-          });
-
-          container.innerHTML = html;
-          this.attachCopyHandlers();
-        }
-
-        renderToken(token) {
-          let preview = "";
-
-          if (token.type === "color") {
-            const color = this.stringifyValue(token.resolvedValue);
-            if (this.isValidColor(color)) {
-              preview = `<div class="preview color" style="background-color: ${color};" title="${color}"></div>`;
-            }
+          const grouped = {};
+          for (const t of this.filteredEntries) {
+            const cat = t.name.split(".")[0];
+            (grouped[cat] || (grouped[cat] = [])).push(t);
           }
 
-          const propertyRows = this.buildPropertyRows(
-            token.rawValue,
-            token.resolvedValue
-          );
+          el.innerHTML = Object.keys(grouped)
+            .sort()
+            .map(
+              (cat) => `
+              <div class="category-card">
+                <div class="category-header">
+                  <span class="category-name">${this.escHtml(cat)}</span>
+                  <span class="category-count">${grouped[cat].length}</span>
+                </div>
+                <div class="tokens-list">
+                  ${grouped[cat].map((t) => this.renderToken(t)).join("")}
+                </div>
+              </div>`
+            )
+            .join("");
+
+          this.attachHandlers();
+        }
+
+        renderToken(t) {
+          const id = this.tokenId(t.name);
+          const raw = this.str(t.rawValue);
+          const resolved = this.str(t.resolvedValue);
+          const hasRef = /\{[^}]+\}/.test(raw);
+          const isCalc = hasRef || raw !== resolved;
+
+          // Color swatch
+          const swatch =
+            t.type === "color" && this.isValidColor(resolved)
+              ? `<div class="color-swatch" style="background:${resolved}" title="${this.escAttr(resolved)}"></div>`
+              : "";
+
+          // Type badge
+          const typeBadge = t.type
+            ? `<span class="type-badge">${this.escHtml(t.type)}</span>`
+            : "";
+
+          // Value rows
+          let valueHtml;
+          if (isCalc) {
+            valueHtml = `
+              <div class="value-section">
+                <div class="value-row">
+                  <label class="value-label">CALCULATION</label>
+                  <div class="value-box calc" data-copy="${this.escAttr(raw)}" title="Click to copy">
+                    <span class="value-content">${this.renderWithRefs(raw)}</span>
+                    <i class="copy-icon" aria-hidden="true">⎘</i>
+                  </div>
+                </div>
+                <div class="value-row">
+                  <label class="value-label">RESOLVED</label>
+                  <div class="value-box resolved" data-copy="${this.escAttr(resolved)}" title="Click to copy">
+                    <span class="value-content">${this.escHtml(resolved)}</span>
+                    <i class="copy-icon" aria-hidden="true">⎘</i>
+                  </div>
+                </div>
+              </div>`;
+          } else {
+            valueHtml = `
+              <div class="value-section">
+                <div class="value-row">
+                  <label class="value-label">VALUE</label>
+                  <div class="value-box plain" data-copy="${this.escAttr(resolved)}" title="Click to copy">
+                    <span class="value-content">${this.escHtml(resolved)}</span>
+                    <i class="copy-icon" aria-hidden="true">⎘</i>
+                  </div>
+                </div>
+              </div>`;
+          }
+
+          const desc = t.description
+            ? `<p class="token-desc">${this.escHtml(t.description)}</p>`
+            : "";
 
           return `
-            <div class="token-item">
-              <div style="display: flex; gap: 10px; align-items: flex-start;">
-                ${preview}
-                <div style="flex: 1;">
-                  <div class="token-name">${this.escapeHtml(token.name)}</div>
-                  <div class="token-props">
-                    ${propertyRows
-                      .map(
-                        (row) => `
-                      <div class="token-prop-row">
-                        ${
-                          row.prop === "value"
-                            ? `<div class="token-prop-name subtle">val</div>`
-                            : `<div class="token-prop-name">${this.escapeHtml(row.prop)}</div>`
-                        }
-                        <div class="token-value-grid">
-                          <div class="token-value-block">
-                            <div class="token-value-label">Calculation</div>
-                            <span class="token-value">${this.escapeHtml(
-                              row.calculation
-                            )}</span>
-                          </div>
-                          <div class="token-value-block">
-                            <div class="token-value-label">Resolved</div>
-                            <span class="token-value">${this.escapeHtml(
-                              row.resolved
-                            )}</span>
-                          </div>
-                        </div>
-                        <button class="copy-btn" data-copy="${this.escapeHtml(
-                          row.resolved
-                        )}" title="Copy resolved value">
-                          Copy
-                        </button>
-                      </div>
-                    `
-                      )
-                      .join("")}
+            <div id="${id}" class="token-item">
+              <div class="token-item-inner">
+                ${swatch}
+                <div class="token-body">
+                  <div class="token-header">
+                    <code class="token-name">${this.escHtml(t.name)}</code>
+                    ${typeBadge}
                   </div>
-                  ${
-                    token.description
-                      ? `<div class="token-description">${this.escapeHtml(token.description)}</div>`
-                      : ""
-                  }
+                  ${valueHtml}
+                  ${desc}
                 </div>
               </div>
-            </div>
-          `;
+            </div>`;
+        }
+
+        /**
+         * Parse a raw value string and replace {token.ref} patterns
+         * with interactive <button> badges.
+         */
+        renderWithRefs(raw) {
+          const pattern = /\{([^}]+)\}/g;
+          let out = "";
+          let last = 0;
+          let m;
+          while ((m = pattern.exec(raw)) !== null) {
+            if (m.index > last) {
+              out += this.escHtml(raw.slice(last, m.index));
+            }
+            const refPath = m[1];
+            const targetId = this.tokenId(refPath);
+            out += `<button type="button" class="ref-badge" data-ref="${this.escAttr(targetId)}" title="Jump to ${this.escAttr(refPath)}">${this.escHtml(refPath)}</button>`;
+            last = m.index + m[0].length;
+          }
+          if (last < raw.length) out += this.escHtml(raw.slice(last));
+          return out;
+        }
+
+        /* ── Event handlers ────────────────────────────────── */
+
+        attachHandlers() {
+          // Click-to-copy on entire value box
+          document.querySelectorAll(".value-box").forEach((box) => {
+            box.addEventListener("click", (e) => {
+              // Don't copy when the user clicked a reference badge
+              if (e.target.closest(".ref-badge")) return;
+              this.copyValue(box.dataset.copy, box);
+            });
+          });
+
+          // Reference badge → jump to token definition
+          document.querySelectorAll(".ref-badge").forEach((badge) => {
+            badge.addEventListener("click", (e) => {
+              e.stopPropagation();
+              this.jumpTo(badge.dataset.ref, badge.title.replace("Jump to ", ""));
+            });
+          });
+        }
+
+        /**
+         * Scroll to the token card with the given DOM id.
+         * If the token is filtered out, clear filters first.
+         */
+        jumpTo(targetId, refPath) {
+          let target = document.getElementById(targetId);
+          if (!target) {
+            // Clear all filters so every token is visible, then re-render
+            this.filter = { search: "", categories: [] };
+            document.getElementById("searchInput").value = "";
+            this.applyFilters();
+            target = document.getElementById(targetId);
+          }
+          if (target) {
+            target.scrollIntoView({ behavior: "smooth", block: "center" });
+            // Restart animation cleanly
+            target.classList.remove("highlight");
+            void target.offsetWidth;
+            target.classList.add("highlight");
+            setTimeout(() => target.classList.remove("highlight"), 1700);
+          } else {
+            this.showToast(`Token not found: ${refPath || targetId}`);
+          }
+        }
+
+        /**
+         * Copy text to clipboard and animate the value box.
+         */
+        async copyValue(text, boxEl) {
+          try {
+            await navigator.clipboard.writeText(text);
+          } catch {
+            // Fallback for environments without clipboard API
+            const ta = document.createElement("textarea");
+            ta.value = text;
+            ta.style.cssText = "position:fixed;left:-9999px;top:-9999px;opacity:0";
+            document.body.appendChild(ta);
+            ta.focus();
+            ta.select();
+            document.execCommand("copy");
+            document.body.removeChild(ta);
+          }
+
+          // Visual feedback: glow + swap icon to checkmark
+          boxEl.classList.add("copying");
+          const icon = boxEl.querySelector(".copy-icon");
+          if (icon) {
+            icon.textContent = "✓";
+            icon.style.opacity = "1";
+            icon.style.color = "#16a34a";
+          }
+          setTimeout(() => {
+            boxEl.classList.remove("copying");
+            if (icon) {
+              icon.textContent = "⎘";
+              icon.style.opacity = "";
+              icon.style.color = "";
+            }
+          }, 1500);
+        }
+
+        showToast(msg) {
+          const el = document.getElementById("toast");
+          el.textContent = msg;
+          el.classList.add("show");
+          clearTimeout(this._toastTimer);
+          this._toastTimer = setTimeout(() => el.classList.remove("show"), 2600);
+        }
+
+        /* ── Token data helpers ────────────────────────────── */
+
+        /**
+         * Flatten the resolved token tree into an array of token entries,
+         * pairing each entry's resolved value with its raw value from rawTokens.
+         */
+        flatten(obj, rawObj, prefix = "") {
+          if (!obj || typeof obj !== "object") return [];
+          const result = [];
+          for (const key of Object.keys(obj)) {
+            const val = obj[key];
+            const rawVal =
+              rawObj && typeof rawObj === "object" ? rawObj[key] : undefined;
+            const path = prefix ? `${prefix}.${key}` : key;
+
+            if (val && typeof val === "object" && "$value" in val) {
+              const rawTok = this.getPath(this.rawTokens, path) || {};
+              result.push({
+                name: path,
+                resolvedValue: val.$value,
+                rawValue:
+                  rawTok.$value !== undefined ? rawTok.$value : val.$value,
+                type: val.$type || rawTok.$type || "",
+                description: val.$description || rawTok.$description || "",
+              });
+            } else if (val && typeof val === "object") {
+              result.push(...this.flatten(val, rawVal, path));
+            }
+          }
+          return result;
+        }
+
+        getPath(obj, dotPath) {
+          return dotPath
+            .split(".")
+            .reduce(
+              (o, k) => (o && typeof o === "object" ? o[k] : undefined),
+              obj
+            );
+        }
+
+        tokenId(name) {
+          return "tok-" + name.replace(/\./g, "-");
+        }
+
+        str(v) {
+          if (v === undefined || v === null) return "";
+          if (typeof v === "string") return v;
+          if (typeof v === "number" || typeof v === "boolean") return String(v);
+          return JSON.stringify(v);
         }
 
         isValidColor(color) {
           try {
             const s = new Option().style;
             s.color = color;
-            return s.color !== "";
-          } catch (e) {
+            return !!s.color;
+          } catch {
             return false;
           }
         }
 
-        attachCopyHandlers() {
-          document.querySelectorAll(".copy-btn").forEach((btn) => {
-            btn.addEventListener("click", () => {
-              const text = btn.getAttribute("data-copy");
-              navigator.clipboard.writeText(text).then(() => {
-                btn.classList.add("copied");
-                btn.textContent = "Copied!";
-                setTimeout(() => {
-                  btn.classList.remove("copied");
-                  btn.textContent = "Copy";
-                }, 2000);
-              });
-            });
-          });
+        /** Escape text for use inside HTML element content. */
+        escHtml(s) {
+          const d = document.createElement("div");
+          d.textContent = String(s ?? "");
+          return d.innerHTML;
         }
 
-        escapeHtml(text) {
-          const div = document.createElement("div");
-          div.textContent = text;
-          return div.innerHTML;
+        /** Escape text for use inside HTML attribute values. */
+        escAttr(s) {
+          return String(s ?? "")
+            .replace(/&/g, "&amp;")
+            .replace(/"/g, "&quot;")
+            .replace(/</g, "&lt;")
+            .replace(/>/g, "&gt;");
         }
       }
 
-      // Initialize the preview
       new TokenPreview();
     </script>
   </body>
