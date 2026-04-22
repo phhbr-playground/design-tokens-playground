@@ -12,29 +12,36 @@
       }
 
       body {
-        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
-          "Helvetica Neue", Arial, sans-serif;
-        background: #f5f5f5;
-        color: #333;
+        font-family: "Avenir Next", "Avenir", "Segoe UI", sans-serif;
+        background:
+          radial-gradient(circle at 15% 10%, rgba(147, 197, 253, 0.2), transparent 30%),
+          radial-gradient(circle at 85% 0%, rgba(125, 211, 252, 0.18), transparent 32%),
+          linear-gradient(180deg, #f7fbff 0%, #eef6ff 100%);
+        color: #1f2937;
+        min-height: 100vh;
       }
 
       .container {
-        max-width: 1200px;
+        max-width: 1480px;
         margin: 0 auto;
-        padding: 20px;
+        padding: 28px;
       }
 
       header {
-        background: white;
-        padding: 20px;
-        border-radius: 8px;
-        margin-bottom: 20px;
-        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        background: rgba(255, 255, 255, 0.92);
+        backdrop-filter: blur(8px);
+        padding: 28px;
+        border-radius: 18px;
+        margin-bottom: 24px;
+        border: 1px solid rgba(147, 197, 253, 0.35);
+        box-shadow: 0 20px 45px rgba(37, 99, 235, 0.08);
       }
 
       h1 {
         margin-bottom: 10px;
-        color: #222;
+        color: #0f172a;
+        letter-spacing: 0.01em;
+        font-size: clamp(1.7rem, 1.5rem + 1vw, 2.25rem);
       }
 
       .header-controls {
@@ -46,54 +53,73 @@
 
       input[type="text"] {
         flex: 1;
-        min-width: 200px;
-        padding: 8px 12px;
-        border: 1px solid #ddd;
-        border-radius: 4px;
+        min-width: 260px;
+        padding: 12px 14px;
+        border: 1px solid #bfdbfe;
+        border-radius: 10px;
         font-size: 14px;
+        background: #f8fbff;
+        transition: border-color 0.2s, box-shadow 0.2s;
+      }
+
+      input[type="text"]:focus {
+        outline: none;
+        border-color: #3b82f6;
+        box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.16);
       }
 
       button {
-        padding: 8px 16px;
-        background: #3b82f6;
+        padding: 10px 16px;
+        background: linear-gradient(135deg, #2563eb, #3b82f6);
         color: white;
         border: none;
-        border-radius: 4px;
+        border-radius: 10px;
         cursor: pointer;
         font-size: 14px;
-        transition: background 0.2s;
+        font-weight: 600;
+        transition: transform 0.15s, filter 0.2s;
       }
 
       button:hover {
-        background: #2563eb;
+        transform: translateY(-1px);
+        filter: brightness(1.05);
       }
 
       button:active {
-        background: #1d4ed8;
+        transform: translateY(0);
+        filter: brightness(0.98);
       }
 
       .categories {
         display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-        gap: 20px;
+        grid-template-columns: repeat(auto-fill, minmax(420px, 1fr));
+        gap: 24px;
         margin-bottom: 20px;
       }
 
       .category-section {
-        background: white;
-        border-radius: 8px;
-        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        background: rgba(255, 255, 255, 0.95);
+        border-radius: 16px;
+        border: 1px solid #dbeafe;
+        box-shadow: 0 14px 30px rgba(30, 64, 175, 0.08);
         overflow: hidden;
+        transition: transform 0.2s, box-shadow 0.2s;
+      }
+
+      .category-section:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 18px 36px rgba(30, 64, 175, 0.14);
       }
 
       .category-header {
-        background: #f0f9ff;
-        padding: 15px;
-        border-left: 4px solid #3b82f6;
+        background: linear-gradient(180deg, #f5f9ff 0%, #eff6ff 100%);
+        padding: 16px 18px;
+        border-left: 5px solid #3b82f6;
         font-weight: 600;
         display: flex;
         justify-content: space-between;
         align-items: center;
+        color: #1e3a8a;
       }
 
       .category-count {
@@ -106,31 +132,33 @@
       }
 
       .tokens-list {
-        padding: 15px;
-        max-height: 500px;
+        padding: 18px;
+        max-height: 680px;
         overflow-y: auto;
       }
 
       .token-item {
-        padding: 12px;
-        margin-bottom: 10px;
-        background: #f9fafb;
-        border-radius: 4px;
-        border-left: 3px solid #e5e7eb;
-        transition: all 0.2s;
+        padding: 18px;
+        margin-bottom: 14px;
+        background: linear-gradient(180deg, #ffffff 0%, #f8fbff 100%);
+        border-radius: 12px;
+        border: 1px solid #dbeafe;
+        border-left: 5px solid #bfdbfe;
+        transition: all 0.2s ease;
       }
 
       .token-item:hover {
-        background: #f3f4f6;
+        background: #ffffff;
         border-left-color: #3b82f6;
+        box-shadow: 0 10px 22px rgba(59, 130, 246, 0.12);
       }
 
       .token-name {
         font-weight: 600;
-        color: #222;
-        margin-bottom: 4px;
+        color: #0f172a;
+        margin-bottom: 10px;
         word-break: break-all;
-        font-size: 13px;
+        font-size: 14px;
       }
 
       .token-value-container {
@@ -142,28 +170,79 @@
 
       .token-value {
         font-family: "Monaco", "Courier New", monospace;
-        font-size: 12px;
-        color: #666;
+        font-size: 11px;
+        color: #334155;
         flex: 1;
         word-break: break-all;
-        background: white;
-        padding: 4px 8px;
+        background: #f8fafc;
+        padding: 6px 8px;
+        border: 1px solid #e2e8f0;
+        border-radius: 6px;
+      }
+
+      .token-props {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+      }
+
+      .token-prop-row {
+        display: grid;
+        grid-template-columns: auto 1fr auto;
+        gap: 10px;
+        align-items: start;
+      }
+
+      .token-prop-name {
+        font-family: "Monaco", "Courier New", monospace;
+        font-size: 10px;
+        color: #1e3a8a;
+        background: #eff6ff;
+        border: 1px solid #bfdbfe;
         border-radius: 3px;
+        padding: 4px 6px;
+        text-align: center;
+        word-break: break-word;
+        min-width: 52px;
+      }
+
+      .token-prop-name.subtle {
+        background: #f8fafc;
+        color: #64748b;
+        border-color: #e2e8f0;
+        min-width: 40px;
+      }
+
+      .token-value-grid {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 8px;
+      }
+
+      .token-value-block {
+        min-width: 0;
+      }
+
+      .token-value-label {
+        font-size: 10px;
+        color: #475569;
+        margin-bottom: 3px;
+        font-weight: 600;
       }
 
       .copy-btn {
-        padding: 4px 8px;
+        padding: 7px 10px;
         font-size: 12px;
-        background: #10b981;
+        background: linear-gradient(135deg, #0ea5e9, #0284c7);
         color: white;
         border: none;
-        border-radius: 3px;
+        border-radius: 6px;
         cursor: pointer;
-        transition: background 0.2s;
+        transition: filter 0.2s;
       }
 
       .copy-btn:hover {
-        background: #059669;
+        filter: brightness(1.08);
       }
 
       .copy-btn.copied {
@@ -172,8 +251,8 @@
 
       .token-description {
         font-size: 12px;
-        color: #999;
-        margin-top: 4px;
+        color: #64748b;
+        margin-top: 10px;
         font-style: italic;
       }
 
@@ -181,9 +260,9 @@
         display: flex;
         align-items: center;
         justify-content: center;
-        width: 40px;
-        height: 40px;
-        border-radius: 4px;
+        width: 52px;
+        height: 52px;
+        border-radius: 10px;
         border: 1px solid #e5e7eb;
         flex-shrink: 0;
       }
@@ -194,8 +273,8 @@
 
       .empty-state {
         text-align: center;
-        padding: 40px 20px;
-        color: #999;
+        padding: 56px 24px;
+        color: #64748b;
       }
 
       .empty-state p {
@@ -210,13 +289,13 @@
       }
 
       .filter-tag {
-        padding: 4px 12px;
-        background: #e0e7ff;
-        color: #3b82f6;
+        padding: 6px 13px;
+        background: #eff6ff;
+        color: #1d4ed8;
         border-radius: 12px;
         font-size: 12px;
         cursor: pointer;
-        border: 1px solid #c7d2fe;
+        border: 1px solid #bfdbfe;
         transition: all 0.2s;
       }
 
@@ -231,8 +310,18 @@
       }
 
       @media (max-width: 768px) {
+        .container {
+          padding: 16px;
+        }
+
+        header {
+          padding: 18px;
+          border-radius: 14px;
+        }
+
         .categories {
           grid-template-columns: 1fr;
+          gap: 16px;
         }
 
         .header-controls {
@@ -241,6 +330,14 @@
 
         input[type="text"] {
           min-width: 100%;
+        }
+
+        .token-prop-row {
+          grid-template-columns: 1fr;
+        }
+
+        .token-value-grid {
+          grid-template-columns: 1fr;
         }
       }
     </style>
@@ -274,7 +371,9 @@
       class TokenPreview {
         constructor() {
           this.tokens = {};
-          this.filteredTokens = {};
+          this.rawTokens = {};
+          this.tokenEntries = [];
+          this.filteredTokenEntries = [];
           this.currentFilter = {
             search: "",
             categories: [],
@@ -290,20 +389,26 @@
 
         async loadTokens() {
           try {
-            // Load from the combined resolved tokens file
-            const response = await fetch("../dist/tokens.resolved.json");
-            if (response.ok) {
-              const allTokens = await response.json();
+            const [resolvedResponse, rawResponse] = await Promise.all([
+              fetch("../dist/tokens.resolved.json"),
+              fetch("../dist/tokens.json"),
+            ]);
 
-              // The resolved tokens are already in the correct nested structure
-              this.tokens = allTokens;
-
-              console.log("Loaded token categories:", Object.keys(this.tokens));
-            } else {
+            if (!resolvedResponse.ok) {
               throw new Error("Could not load tokens.resolved.json");
             }
 
-            this.filteredTokens = JSON.parse(JSON.stringify(this.tokens));
+            if (!rawResponse.ok) {
+              throw new Error("Could not load tokens.json");
+            }
+
+            this.tokens = await resolvedResponse.json();
+            this.rawTokens = await rawResponse.json();
+            this.tokenEntries = this.flattenTokens(this.tokens, this.rawTokens);
+            this.filteredTokenEntries = [...this.tokenEntries];
+            this.renderFilterTags();
+
+            console.log("Loaded token categories:", Object.keys(this.tokens));
           } catch (error) {
             console.error("Error loading tokens:", error);
             document.getElementById("categories").innerHTML =
@@ -324,102 +429,194 @@
             .addEventListener("click", () => {
               this.currentFilter = { search: "", categories: [] };
               document.getElementById("searchInput").value = "";
-              document
-                .querySelectorAll(".filter-tag")
-                .forEach((tag) => tag.classList.remove("active"));
               this.applyFilters();
             });
         }
 
         applyFilters() {
-          this.filteredTokens = JSON.parse(JSON.stringify(this.tokens));
+          const search = this.currentFilter.search;
+          this.filteredTokenEntries = this.tokenEntries.filter((entry) => {
+            const category = entry.name.split(".")[0];
+            if (
+              this.currentFilter.categories.length > 0 &&
+              !this.currentFilter.categories.includes(category)
+            ) {
+              return false;
+            }
 
-          // Apply search filter
-          if (this.currentFilter.search) {
-            const search = this.currentFilter.search;
-            Object.keys(this.filteredTokens).forEach((category) => {
-              this.filteredTokens[category] = this.filterTokensRecursive(
-                this.filteredTokens[category],
-                search
-              );
-            });
-          }
+            if (!search) {
+              return true;
+            }
 
-          // Apply category filter
-          if (this.currentFilter.categories.length > 0) {
-            Object.keys(this.filteredTokens).forEach((category) => {
-              if (!this.currentFilter.categories.includes(category)) {
-                delete this.filteredTokens[category];
-              }
-            });
-          }
+            const nameStr = entry.name.toLowerCase();
+            const descriptionStr = (entry.description || "").toLowerCase();
+            const rawStr = this.stringifyValue(entry.rawValue).toLowerCase();
+            const resolvedStr = this
+              .stringifyValue(entry.resolvedValue)
+              .toLowerCase();
 
+            return (
+              nameStr.includes(search) ||
+              descriptionStr.includes(search) ||
+              rawStr.includes(search) ||
+              resolvedStr.includes(search)
+            );
+          });
+
+          this.renderFilterTags();
           this.render();
         }
 
-        filterTokensRecursive(obj, search) {
-          if (!obj || typeof obj !== "object") return obj;
+        renderFilterTags() {
+          const filterTags = document.getElementById("filterTags");
+          const categories = [...new Set(this.tokenEntries.map((entry) => entry.name.split(".")[0]))].sort();
 
-          const result = {};
-          let hasMatches = false;
+          filterTags.innerHTML = categories
+            .map((category) => {
+              const isActive = this.currentFilter.categories.includes(category);
+              return `<button class="filter-tag ${isActive ? "active" : ""}" data-category="${this.escapeHtml(
+                category
+              )}">${this.escapeHtml(category)}</button>`;
+            })
+            .join("");
+
+          filterTags.querySelectorAll(".filter-tag").forEach((btn) => {
+            btn.addEventListener("click", () => {
+              const category = btn.getAttribute("data-category");
+              if (this.currentFilter.categories.includes(category)) {
+                this.currentFilter.categories = this.currentFilter.categories.filter(
+                  (item) => item !== category
+                );
+              } else {
+                this.currentFilter.categories.push(category);
+              }
+              this.applyFilters();
+            });
+          });
+        }
+
+        getByPath(obj, path) {
+          return path.split(".").reduce((acc, segment) => {
+            if (!acc || typeof acc !== "object") {
+              return undefined;
+            }
+            return acc[segment];
+          }, obj);
+        }
+
+        stringifyValue(value) {
+          if (value === undefined) {
+            return "";
+          }
+
+          if (typeof value === "string") {
+            return value;
+          }
+
+          if (value === null || typeof value !== "object") {
+            return String(value);
+          }
+
+          return JSON.stringify(value);
+        }
+
+        buildPropertyRows(rawValue, resolvedValue) {
+          const rawIsObject = rawValue !== null && typeof rawValue === "object";
+          const resolvedIsObject =
+            resolvedValue !== null && typeof resolvedValue === "object";
+
+          if (
+            (rawIsObject && Array.isArray(rawValue)) ||
+            (resolvedIsObject && Array.isArray(resolvedValue))
+          ) {
+            return [
+              {
+                prop: "value",
+                calculation: this.stringifyValue(rawValue),
+                resolved: this.stringifyValue(resolvedValue),
+              },
+            ];
+          }
+
+          if (rawIsObject || resolvedIsObject) {
+            const rawObject = rawIsObject ? rawValue : {};
+            const resolvedObject = resolvedIsObject ? resolvedValue : {};
+            const keys = [...new Set([...Object.keys(rawObject), ...Object.keys(resolvedObject)])].sort();
+
+            return keys.map((key) => ({
+              prop: key,
+              calculation: this.stringifyValue(rawObject[key]),
+              resolved: this.stringifyValue(resolvedObject[key]),
+            }));
+          }
+
+          return [
+            {
+              prop: "value",
+              calculation: this.stringifyValue(rawValue),
+              resolved: this.stringifyValue(resolvedValue),
+            },
+          ];
+        }
+
+        flattenTokens(obj, rawObj, prefix = "") {
+          if (!obj || typeof obj !== "object") {
+            return [];
+          }
+
+          const result = [];
 
           for (const key in obj) {
             const value = obj[key];
+            const rawValue = rawObj && typeof rawObj === "object" ? rawObj[key] : undefined;
+            const fullPath = prefix ? `${prefix}.${key}` : key;
 
-            // Check if key matches
-            if (key.toLowerCase().includes(search)) {
-              result[key] = value;
-              hasMatches = true;
-              continue;
-            }
-
-            // Check if it's a token with $value
-            if (value.$value) {
-              const valueStr = JSON.stringify(value.$value).toLowerCase();
-              const description = (value.$description || "").toLowerCase();
-
-              if (
-                valueStr.includes(search) ||
-                description.includes(search)
-              ) {
-                result[key] = value;
-                hasMatches = true;
-              }
-            } else if (typeof value === "object") {
-              // Recursively filter nested objects
-              const filtered = this.filterTokensRecursive(value, search);
-              if (Object.keys(filtered).length > 0) {
-                result[key] = filtered;
-                hasMatches = true;
-              }
+            if (value && typeof value === "object" && value.$value !== undefined) {
+              const rawToken = this.getByPath(this.rawTokens, fullPath) || rawValue || {};
+              result.push({
+                name: fullPath,
+                resolvedValue: value.$value,
+                rawValue: rawToken.$value !== undefined ? rawToken.$value : value.$value,
+                description: value.$description || rawToken.$description || "",
+                type: value.$type || rawToken.$type || "",
+              });
+            } else if (value && typeof value === "object") {
+              result.push(...this.flattenTokens(value, rawValue, fullPath));
             }
           }
 
-          return hasMatches ? result : {};
+          return result;
         }
 
         render() {
           const container = document.getElementById("categories");
-          const categories = Object.keys(this.filteredTokens);
 
-          if (categories.length === 0) {
+          if (this.filteredTokenEntries.length === 0) {
             container.innerHTML =
               '<div class="empty-state"><p>No tokens found. Try adjusting your search.</p></div>';
             return;
           }
 
+          const grouped = this.filteredTokenEntries.reduce((acc, token) => {
+            const category = token.name.split(".")[0];
+            if (!acc[category]) {
+              acc[category] = [];
+            }
+            acc[category].push(token);
+            return acc;
+          }, {});
+
+          const categories = Object.keys(grouped).sort();
+
           let html = "";
 
           categories.forEach((category) => {
-            const tokens = this.filteredTokens[category];
-            const tokensList = this.flattenTokens(tokens);
-
-            if (tokensList.length === 0) return;
+            const tokensList = grouped[category];
 
             html += `
               <div class="category-section">
                 <div class="category-header">
-                  <span>${category}</span>
+                  <span>${this.escapeHtml(category)}</span>
                   <span class="category-count">${tokensList.length}</span>
                 </div>
                 <div class="tokens-list">
@@ -433,37 +630,20 @@
           this.attachCopyHandlers();
         }
 
-        flattenTokens(obj, prefix = "") {
-          const result = [];
-
-          for (const key in obj) {
-            const value = obj[key];
-            const fullPath = prefix ? `${prefix}.${key}` : key;
-
-            if (value.$value !== undefined) {
-              result.push({
-                name: fullPath,
-                value: value.$value,
-                description: value.$description || "",
-                type: value.$type || "",
-              });
-            } else if (typeof value === "object") {
-              result.push(...this.flattenTokens(value, fullPath));
-            }
-          }
-
-          return result;
-        }
-
         renderToken(token) {
           let preview = "";
 
           if (token.type === "color") {
-            const color = String(token.value);
+            const color = this.stringifyValue(token.resolvedValue);
             if (this.isValidColor(color)) {
               preview = `<div class="preview color" style="background-color: ${color};" title="${color}"></div>`;
             }
           }
+
+          const propertyRows = this.buildPropertyRows(
+            token.rawValue,
+            token.resolvedValue
+          );
 
           return `
             <div class="token-item">
@@ -471,11 +651,39 @@
                 ${preview}
                 <div style="flex: 1;">
                   <div class="token-name">${this.escapeHtml(token.name)}</div>
-                  <div class="token-value-container">
-                    <span class="token-value">${this.escapeHtml(String(token.value))}</span>
-                    <button class="copy-btn" data-copy="${String(token.value)}" title="Copy value">
-                      Copy
-                    </button>
+                  <div class="token-props">
+                    ${propertyRows
+                      .map(
+                        (row) => `
+                      <div class="token-prop-row">
+                        ${
+                          row.prop === "value"
+                            ? `<div class="token-prop-name subtle">val</div>`
+                            : `<div class="token-prop-name">${this.escapeHtml(row.prop)}</div>`
+                        }
+                        <div class="token-value-grid">
+                          <div class="token-value-block">
+                            <div class="token-value-label">Calculation</div>
+                            <span class="token-value">${this.escapeHtml(
+                              row.calculation
+                            )}</span>
+                          </div>
+                          <div class="token-value-block">
+                            <div class="token-value-label">Resolved</div>
+                            <span class="token-value">${this.escapeHtml(
+                              row.resolved
+                            )}</span>
+                          </div>
+                        </div>
+                        <button class="copy-btn" data-copy="${this.escapeHtml(
+                          row.resolved
+                        )}" title="Copy resolved value">
+                          Copy
+                        </button>
+                      </div>
+                    `
+                      )
+                      .join("")}
                   </div>
                   ${
                     token.description
