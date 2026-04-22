@@ -138,6 +138,58 @@ group fields — see the inline examples in each form for guidance.
 - Maintain broad example token sets
 - Hide implementation complexity with large docs
 
+## DTCG Draft Compliance Gaps (Current State)
+
+This repository intentionally implements a minimal pipeline and does not yet
+fully implement all requirements from the current DTCG draft modules.
+
+### High-priority gaps
+
+- No JSON Pointer reference support (`$ref`) in repository-level resolution.
+  Current local resolver handles curly-brace aliases (`{path.to.token}`), but
+  property-level `$ref` resolution is not implemented.
+- No group extension support (`$extends`) with JSON Schema-equivalent behavior.
+  Deep merge semantics, circular detection for extension chains, and related
+  error conditions are not implemented here.
+- No support for root tokens via `$root` semantics.
+- No group-level type inheritance. Tokens currently require explicit `$type` on
+  leaves in static validation.
+
+### Validation and type-system weaknesses
+
+- `$type` is treated as a string and is not strictly validated against the full
+  DTCG type set in this repository's own validator.
+- Naming validation is stricter than the DTCG format in places (project-specific
+  kebab-case constraints), which can reject some otherwise valid DTCG token files.
+- Group reserved-key behavior from DTCG (for example `$extends`, `$root`) is not
+  fully modeled in static validation logic.
+
+### Composite and advanced type coverage
+
+- Composite types from the format draft (for example typography, border,
+  strokeStyle, transition, gradient, shadow) are not comprehensively validated
+  end-to-end by this repository's own static rules.
+- Output transforms for composite types are not fully standardized in this
+  project; CSS/JS output is focused on the current minimal token set.
+
+### Resolver module coverage
+
+- The DTCG Resolver module workflow (resolver documents, sets, modifiers,
+  resolutionOrder, input validation, permutation handling) is not implemented in
+  this repository.
+- There is currently no first-class support for `.resolver.json` documents.
+
+### Error and conformance behavior
+
+- Build-time interpretation issues are surfaced as warnings, and the pipeline can
+  continue, rather than enforcing strict fail-fast conformance in all cases.
+
+### Scope note
+
+The above is a deliberate scope choice to keep this repository small and easy to
+reason about. If full DTCG draft conformance becomes a goal, these gaps should
+be treated as the roadmap baseline.
+
 ## Preview
 
 Use:
