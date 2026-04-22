@@ -64,14 +64,15 @@
 
         async loadTokens() {
           try {
-            const [r1, r2] = await Promise.all([
-              fetch("../dist/tokens.resolved.json"),
-              fetch("../dist/tokens.json"),
+            const [resolvedTokens, preScriptTokens] = await Promise.all([
+              this.fetchJson("../dist/tokens.resolved.json", "tokens.resolved.json not found"),
+              this.fetchJsonWithFallback(
+                ["../dist/tokens.pre-script.json", "../dist/tokens.json"],
+                "pre-script token JSON not found"
+              ),
             ]);
-            if (!r1.ok) throw new Error("tokens.resolved.json not found");
-            if (!r2.ok) throw new Error("tokens.json not found");
-            this.tokens = await r1.json();
-            this.rawTokens = await r2.json();
+            this.tokens = resolvedTokens;
+            this.rawTokens = preScriptTokens;
             this.tokenEntries = this.flatten(this.tokens, this.rawTokens);
             this.filteredEntries = [...this.tokenEntries];
             this.renderFilterTags();
@@ -83,6 +84,20 @@
                 <small>Run <code>npm run build</code>, then serve via <code>npm run preview</code>.</small>
               </div>`;
           }
+        }
+
+        async fetchJson(path, errorMessage) {
+          const res = await fetch(path);
+          if (!res.ok) throw new Error(errorMessage);
+          return res.json();
+        }
+
+        async fetchJsonWithFallback(paths, finalErrorMessage) {
+          for (const path of paths) {
+            const res = await fetch(path);
+            if (res.ok) return res.json();
+          }
+          throw new Error(finalErrorMessage);
         }
 
         /* ── Search & filter ───────────────────────────────── */
@@ -109,18 +124,25 @@
             )
               return false;
             if (!s) return true;
-            return [t.name, t.description, this.str(t.rawValue), this.str(t.resolvedValue)]
+            return this.getSearchableParts(t)
               .some((x) => (x || "").toLowerCase().includes(s));
           });
           this.renderFilterTags();
           this.render();
         }
 
+        getSearchableParts(tokenEntry) {
+          return [
+            tokenEntry.name,
+            tokenEntry.description,
+            this.str(tokenEntry.preScriptValue),
+            this.str(tokenEntry.resolvedValue),
+          ];
+        }
+
         renderFilterTags() {
           const el = document.getElementById("filterTags");
-          const cats = [
-            ...new Set(this.tokenEntries.map((t) => t.name.split(".")[0])),
-          ].sort();
+          const cats = this.getCategories();
           el.innerHTML = cats
             .map((cat) => {
               const active = this.filter.categories.includes(cat);
@@ -138,6 +160,12 @@
           });
         }
 
+        getCategories() {
+          return [
+            ...new Set(this.tokenEntries.map((t) => t.name.split(".")[0])),
+          ].sort();
+        }
+
         /* ── Render ────────────────────────────────────────── */
 
         render() {
@@ -147,37 +175,45 @@
             return;
           }
 
-          const grouped = {};
-          for (const t of this.filteredEntries) {
-            const cat = t.name.split(".")[0];
-            (grouped[cat] || (grouped[cat] = [])).push(t);
-          }
+          const grouped = this.groupByCategory(this.filteredEntries);
 
           el.innerHTML = Object.keys(grouped)
             .sort()
-            .map(
-              (cat) => `
-              <div class="category-card">
-                <div class="category-header">
-                  <span class="category-name">${this.escHtml(cat)}</span>
-                  <span class="category-count">${grouped[cat].length}</span>
-                </div>
-                <div class="tokens-list">
-                  ${grouped[cat].map((t) => this.renderToken(t)).join("")}
-                </div>
-              </div>`
-            )
+            .map((cat) => this.renderCategory(cat, grouped[cat]))
             .join("");
 
           this.attachHandlers();
         }
 
+        groupByCategory(entries) {
+          const grouped = {};
+          for (const t of entries) {
+            const cat = t.name.split(".")[0];
+            (grouped[cat] || (grouped[cat] = [])).push(t);
+          }
+          return grouped;
+        }
+
+        renderCategory(categoryName, entries) {
+          return `
+              <div class="category-card">
+                <div class="category-header">
+                  <span class="category-name">${this.escHtml(categoryName)}</span>
+                  <span class="category-count">${entries.length}</span>
+                </div>
+                <div class="tokens-list">
+                  ${entries.map((t) => this.renderToken(t)).join("")}
+                </div>
+              </div>`;
+        }
+
         renderToken(t) {
           const id = this.tokenId(t.name);
-          const raw = this.str(t.rawValue);
+          const hasPreScript = t.preScriptValue !== undefined;
+          const preScript = this.str(t.preScriptValue);
           const resolved = this.str(t.resolvedValue);
-          const hasRef = /\{[^}]+\}/.test(raw);
-          const isCalc = hasRef || raw !== resolved;
+          const hasRef = /\{[^}]+\}/.test(preScript);
+          const isCalc = hasPreScript && (hasRef || preScript !== resolved);
 
           // Color swatch
           const swatch =
@@ -190,15 +226,13 @@
             ? `<span class="type-badge">${this.escHtml(t.type)}</span>`
             : "";
 
-          // Value rows
-          let valueHtml;
-          if (isCalc) {
-            valueHtml = `
+          const valueHtml = isCalc
+            ? `
               <div class="value-section">
                 <div class="value-row">
                   <label class="value-label">CALCULATION</label>
-                  <div class="value-box calc" data-copy="${this.escAttr(raw)}" title="Click to copy">
-                    <span class="value-content">${this.renderWithRefs(raw)}</span>
+                  <div class="value-box calc" data-copy="${this.escAttr(preScript)}" title="Click to copy">
+                    <span class="value-content">${this.renderWithRefs(preScript)}</span>
                     <i class="copy-icon" aria-hidden="true">⎘</i>
                   </div>
                 </div>
@@ -209,9 +243,8 @@
                     <i class="copy-icon" aria-hidden="true">⎘</i>
                   </div>
                 </div>
-              </div>`;
-          } else {
-            valueHtml = `
+              </div>`
+            : `
               <div class="value-section">
                 <div class="value-row">
                   <label class="value-label">VALUE</label>
@@ -221,7 +254,6 @@
                   </div>
                 </div>
               </div>`;
-          }
 
           const desc = t.description
             ? `<p class="token-desc">${this.escHtml(t.description)}</p>`
@@ -359,7 +391,7 @@
 
         /**
          * Flatten the resolved token tree into an array of token entries,
-         * pairing each entry's resolved value with its raw value from rawTokens.
+         * pairing each entry's resolved value with its pre-script value from raw tokens.json.
          */
         flatten(obj, rawObj, prefix = "") {
           if (!obj || typeof obj !== "object") return [];
@@ -375,8 +407,7 @@
               result.push({
                 name: path,
                 resolvedValue: val.$value,
-                rawValue:
-                  rawTok.$value !== undefined ? rawTok.$value : val.$value,
+                preScriptValue: rawTok.$value,
                 type: val.$type || rawTok.$type || "",
                 description: val.$description || rawTok.$description || "",
               });

@@ -225,6 +225,7 @@ export async function buildTokens(options: BuildOptions = {}) {
     const interpretedOutput = buildInterpretedJson(interpretedTokens, flatInterpretedValues);
 
     writeFileSync(join(process.cwd(), outputDir, "tokens.json"), JSON.stringify(allTokens, null, 2));
+    writeFileSync(join(process.cwd(), outputDir, "tokens.pre-script.json"), JSON.stringify(allTokens, null, 2));
     writeFileSync(join(process.cwd(), outputDir, "tokens.resolved.json"), JSON.stringify(resolvedTokens, null, 2));
     writeFileSync(join(process.cwd(), outputDir, "tokens.interpreted.json"), JSON.stringify(interpretedOutput, null, 2));
   }
@@ -236,6 +237,7 @@ export async function buildTokens(options: BuildOptions = {}) {
   if (generateTypes) console.log(`   🔷 TypeScript types: ${outputDir}/tokens.d.ts`);
   if (generateJson) {
     console.log(`   📋 Raw tokens: ${outputDir}/tokens.json`);
+    console.log(`   🧪 Pre-script tokens: ${outputDir}/tokens.pre-script.json`);
     console.log(`   🔍 Resolved tokens: ${outputDir}/tokens.resolved.json`);
   }
 }
