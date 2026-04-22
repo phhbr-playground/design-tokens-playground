@@ -3,7 +3,7 @@ import { join } from "node:path";
 
 const TOKENS_ROOT = "tokens";
 const TOKEN_FILENAME = "tokens.json";
-const ALLOWED_HIERARCHIES = ["universal", "system", "semantic", "component"] as const;
+const ALLOWED_HIERARCHIES = ["design-values", "universal", "system", "semantic", "component"] as const;
 
 export type Hierarchy = (typeof ALLOWED_HIERARCHIES)[number];
 export { ALLOWED_HIERARCHIES, TOKEN_FILENAME, TOKENS_ROOT };

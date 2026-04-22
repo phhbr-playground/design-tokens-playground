@@ -14,12 +14,17 @@ body:
         Identify the token with the four **Curtis Nathan** groups.
         Select the hierarchy from the dropdown — do **not** include it in the path.
 
+        **Curtis Nathan naming**: `{namespace}.{object}.{base}.{modifier}`
+        where `namespace` = `system.theme.domain`, `object` = `group.component.element`,
+        `base` = `category.concept.property`, `modifier` = `variant.state.scale.mode`.
+
   - type: dropdown
     id: hierarchy
     attributes:
       label: Hierarchy
       description: Which layer does this token belong to?
       options:
+        - design-values
         - universal
         - system
         - semantic

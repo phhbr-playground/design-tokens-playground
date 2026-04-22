@@ -23,7 +23,7 @@ Notes: There is no dedicated lint script. For a minimal build omitting specific 
 
 ## High-level architecture (big picture)
 
-- tokens/ — canonical source JSON token files. Organized by hierarchy layer (universal, system, semantic, component). Tokens follow the DTCG format and are the single source of truth. Each layer lives in `tokens/{layer}/tokens.json`.
+- tokens/ — canonical source JSON token files. Organized by hierarchy layer (design-values, universal, system, semantic, component). Tokens follow the DTCG format and are the single source of truth. Each layer lives in `tokens/{layer}/tokens.json`.
 - src/ — build pipeline and utilities:
   - `index.ts` — CLI / build entry that parses flags and drives the build pipeline.
   - `build-config.ts` — Style Dictionary platform configuration and `BuildOptions` interface.
@@ -45,12 +45,17 @@ Runtime targets: Node.js 20+, npm 10+ (see README/DEVELOPMENT.md and tsconfig.js
 ## Key conventions and patterns (repo-specific)
 
 - Token format: DTCG-style entries with required properties `"$value"` and `"$type"` (optionally `$description`, `$extensions`). Copilot should assume this format when suggesting token edits.
-- Token hierarchy: Exactly four layers — `universal`, `system`, `semantic`, `component`. Each layer lives in `tokens/{layer}/tokens.json`. No other directories or filenames are accepted.
-- Naming convention (Curtis Nathan): All token path segments are **lowercase kebab-case**. Path structure is `{namespace}.{object}.{base}.{modifier}` where the namespace encodes the layer context (e.g. `system.light.color`).
-  - `universal.*` references nothing.
-  - `system.*` may only reference `universal.*`.
-  - `semantic.*` may only reference `system.*`.
-  - `component.*` may only reference `semantic.*`.
+- Token hierarchy: Exactly five layers — `design-values`, `universal`, `system`, `semantic`, `component`. Each layer lives in `tokens/{layer}/tokens.json`. No other directories or filenames are accepted.
+- Naming convention (Curtis Nathan): All token path segments are **lowercase kebab-case**. Path structure is `{namespace}.{object}.{base}.{modifier}` where the groups map to:
+  - `namespace` = `system.theme.domain` (encodes the layer context, e.g. `system.light.color`)
+  - `object` = `group.component.element` (e.g. `button.primary.text`)
+  - `base` = `category.concept.property` (e.g. `color` or `space.padding`)
+  - `modifier` = `variant.state.scale.mode` (e.g. `hover.on-light`)
+  - `design-values.*` references nothing (raw primitives).
+  - `universal.*` may only reference `design-values.*`.
+  - `system.*` may reference `design-values.*` or `universal.*`.
+  - `semantic.*` may reference `design-values.*`, `universal.*`, or `system.*`.
+  - `component.*` may reference `design-values.*`, `universal.*`, `system.*`, or `semantic.*`.
 - Token references: Use the `{path.to.token}` syntax to reference other tokens; the build pipeline resolves these into `tokens.resolved.json`.
 - Validation: Curtis Nathan naming and layer-reference rules are enforced by `src/token-validator.ts` at build time and by the Jest suite. Suggestions that modify tokens should keep `$type` values valid and `$value` formats consistent with `$type` (e.g. colors as hex/rgb/hsl).
 - Outputs and variants: Building supports flags to omit outputs (e.g. `--no-types`, `--no-json`, `--no-js`, `--no-css`) — use these to create minimal builds.

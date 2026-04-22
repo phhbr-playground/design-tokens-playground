@@ -15,39 +15,63 @@ body:
         {namespace}.{object}.{base}.{modifier}
         ```
 
-        | Group      | What it captures                                   | Example                         |
-        | ---------- | -------------------------------------------------- | ------------------------------- |
-        | namespace  | hierarchy level + optional theme + optional domain | `system.light.color`            |
-        | object     | group / component / element being styled           | `button.primary.text`           |
-        | base       | category / concept / property                      | `color` or `space.padding`      |
-        | modifier   | variant / state / scale / mode                     | `hover.on-light` or _(empty)_   |
+        | Group      | Segments                          | Example                           |
+        | ---------- | --------------------------------- | --------------------------------- |
+        | namespace  | `system.theme.domain`             | `system.light.color`              |
+        | object     | `group.component.element`         | `button.primary.text`             |
+        | base       | `category.concept.property`       | `color` or `space.padding`        |
+        | modifier   | `variant.state.scale.mode`        | `hover.on-light` or _(empty)_     |
+
+        **5-Layer Hierarchy**
+
+        | Layer           | Can reference                                          | Example value                                        |
+        | --------------- | ------------------------------------------------------ | ---------------------------------------------------- |
+        | `design-values` | _(nothing — raw primitives only)_                      | `blue.500.lightness` → `0.4989`                      |
+        | `universal`     | `design-values`                                        | `blue.500` → `oklch({blue.500.lightness} ...)`       |
+        | `system`        | `design-values`, `universal`                           | `color.primary` → `{universal.blue.500}`             |
+        | `semantic`      | `design-values`, `universal`, `system`                 | `color.action.primary` → `{system.color.primary}`    |
+        | `component`     | `design-values`, `universal`, `system`, `semantic`     | `color.background.solid` → `{semantic.color.action.primary}` |
 
         **Rules**
         - Every segment is **lowercase kebab-case** (`on-brand`, `primary-text`).
-        - The `namespace` field must start with one of: `universal`, `system`, `semantic`, `component`.
-        - Hierarchy references are one-layer-up only:
-          universal → (none), system → universal, semantic → system, component → semantic.
-        - `universal` tokens hold raw primitive values (no `{ref}`).
+        - The hierarchy is selected separately — do **not** include it in the token path.
+        - `design-values` tokens hold raw primitive values only (no `{ref}`).
+        - Each layer may reference any layer that is **below** it in the hierarchy.
 
         **Good examples**
-        - `universal.color.blue.500` → `#3B82F6`
-        - `system.light.color.brand.primary` → `{universal.color.blue.500}`
+        - `design-values.blue.500.lightness` → `0.4989`
+        - `universal.blue.500` → `oklch({blue.500.lightness} {blue.chroma} {blue.hue})`
+        - `system.light.color.brand.primary` → `{universal.blue.500}`
         - `semantic.action.color.background.primary` → `{system.light.color.brand.primary}`
         - `component.button.primary.color.background` → `{semantic.action.color.background.primary}`
 
         > Only fill in the four group fields below. Leave unused groups empty — the
         > build pipeline (TokenScript + validator) will reject malformed paths.
 
+  - type: dropdown
+    id: hierarchy
+    attributes:
+      label: Hierarchy
+      description: Which layer does this token belong to?
+      options:
+        - design-values
+        - universal
+        - system
+        - semantic
+        - component
+    validations:
+      required: true
+
   - type: input
     id: namespace
     attributes:
-      label: Namespace
+      label: Namespace (theme / domain)
       description: |
-        Hierarchy level + optional theme + optional domain, joined by `.`.
-        **Required.** First segment must be `universal`, `system`, `semantic`, or `component`.
-      placeholder: "system.light.color"
+        Optional theme + domain — do **not** include the hierarchy keyword.
+        Joined by `.`.
+      placeholder: "light.color"
     validations:
-      required: true
+      required: false
 
   - type: input
     id: object
@@ -84,13 +108,14 @@ body:
     attributes:
       label: Token Value
       description: |
-        Raw value, or `{path.to.token}` reference to the layer one step above.
+        Raw value, or `{path.to.token}` reference to any layer below this one.
 
-        - Universal: raw value only — `#3B82F6`, `1rem`, `700`
-        - System: reference to universal — `{universal.color.blue.500}`
-        - Semantic: reference to system — `{system.light.color.brand.primary}`
-        - Component: reference to semantic — `{semantic.action.color.background.primary}`
-      placeholder: "#3B82F6 or {semantic.action.color.background.primary}"
+        - design-values: raw primitives only — `0.4989`, `210`, `0.6`
+        - universal: reference to design-values — `oklch({blue.500.lightness} {blue.chroma} {blue.hue})`
+        - system: reference to design-values or universal — `{universal.blue.500}`
+        - semantic: reference to any lower layer — `{system.light.color.brand.primary}`
+        - component: reference to any lower layer — `{semantic.action.color.background.primary}`
+      placeholder: "0.4989 or {semantic.action.color.background.primary}"
     validations:
       required: true
 
@@ -117,11 +142,11 @@ body:
     attributes:
       label: Pre-submission Checklist
       options:
-        - label: The `namespace` field starts with a valid hierarchy (`universal` / `system` / `semantic` / `component`).
+        - label: The hierarchy is one of `design-values` / `universal` / `system` / `semantic` / `component`.
           required: true
         - label: All segments in every group are lowercase `kebab-case`.
           required: true
-        - label: The `$value` references only tokens from the layer directly above (or is a raw value for `universal`).
+        - label: The `$value` references only tokens from a layer **below** this one (or is a raw value for `design-values`).
           required: true
         - label: The `$type` is a valid DTCG type.
           required: true

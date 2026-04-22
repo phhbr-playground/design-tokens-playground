@@ -11,6 +11,7 @@ describe("TokenLoader", () => {
     const tokensByHierarchy = loader.loadTokensByHierarchy();
 
     expect(Array.from(tokensByHierarchy.keys())).toEqual([
+      "design-values",
       "universal",
       "system",
       "semantic",

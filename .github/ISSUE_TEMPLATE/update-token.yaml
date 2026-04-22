@@ -11,8 +11,17 @@ body:
         Identify the token with the four **Curtis Nathan** groups and provide the new value.
         Select the hierarchy from the dropdown — do **not** include it in the path.
 
-        All segments are **lowercase kebab-case**. Hierarchy rules still apply:
-        universal → (none), system → universal, semantic → system, component → semantic.
+        All segments are **lowercase kebab-case**. Hierarchy rules still apply — each layer may
+        reference any layer **below** it:
+        - `design-values` → (nothing)
+        - `universal` → `design-values`
+        - `system` → `design-values`, `universal`
+        - `semantic` → `design-values`, `universal`, `system`
+        - `component` → `design-values`, `universal`, `system`, `semantic`
+
+        **Curtis Nathan naming**: `{namespace}.{object}.{base}.{modifier}`
+        where `namespace` = `system.theme.domain`, `object` = `group.component.element`,
+        `base` = `category.concept.property`, `modifier` = `variant.state.scale.mode`.
 
   - type: dropdown
     id: hierarchy
@@ -20,6 +29,7 @@ body:
       label: Hierarchy
       description: Which layer does this token belong to?
       options:
+        - design-values
         - universal
         - system
         - semantic
@@ -104,7 +114,7 @@ body:
       options:
         - label: I understand this change may cascade to higher-layer tokens that reference this one.
           required: true
-        - label: The new value references only tokens from the layer directly above (or is a raw value for `universal`).
+        - label: The new value references only tokens from a layer **below** this one (or is a raw value for `design-values`).
           required: true
         - label: I have verified there are no circular reference issues.
           required: true
