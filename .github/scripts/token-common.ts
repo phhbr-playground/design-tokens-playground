@@ -49,12 +49,19 @@ export function buildTokenPath(data: TokenData): string {
  * Returns the validated hierarchy for a TokenData payload.
  */
 export function getHierarchy(data: TokenData): Hierarchy {
-  if (!ALLOWED_HIERARCHIES.includes(data.hierarchy)) {
+  const rawHierarchy = String(data.hierarchy ?? "").trim();
+  const normalizedHierarchy = rawHierarchy
+    .replace(/^\[+/, "")
+    .replace(/\]+$/, "")
+    .trim()
+    .toLowerCase() as Hierarchy;
+
+  if (!ALLOWED_HIERARCHIES.includes(normalizedHierarchy)) {
     throw new Error(
-      `Invalid hierarchy '${data.hierarchy}'. Allowed: ${ALLOWED_HIERARCHIES.join(", ")}`
+      `Invalid hierarchy '${rawHierarchy}'. Allowed: ${ALLOWED_HIERARCHIES.join(", ")}`
     );
   }
-  return data.hierarchy;
+  return normalizedHierarchy;
 }
 
 /**
