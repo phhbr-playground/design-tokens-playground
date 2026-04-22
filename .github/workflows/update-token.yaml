@@ -150,8 +150,6 @@ jobs:
             - **Namespace**: ${tokenData.namespace || 'N/A'}
             - **Object**: ${tokenData.object || '-'}
             - **Base**: ${tokenData.base || '-'}
-            - **Modifier**: ${tokenData.modifier || '-
-            - **Base**: ${tokenData.base || '-'}
             - **Modifier**: ${tokenData.modifier || '-'}
             - **Current Value**: \`${tokenData['current-value']}\`
             - **New Value**: \`${tokenData['new-value']}\`

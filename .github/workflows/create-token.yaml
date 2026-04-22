@@ -110,8 +110,6 @@ jobs:
             - **Namespace**: ${tokenData.namespace || 'N/A'}
             - **Object**: ${tokenData.object || '-'}
             - **Base**: ${tokenData.base || '-'}
-            - **Modifier**: ${tokenData.modifier || '-
-            - **Base**: ${tokenData.base || '-'}
             - **Modifier**: ${tokenData.modifier || '-'}
             ${tokenData['token-value'] ? `- **Value**: \`${tokenData['token-value']}\`` : ''}
             ${tokenData['token-type'] ? `- **Type**: \`${tokenData['token-type']}\`` : ''}
