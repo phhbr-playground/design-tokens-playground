@@ -81,4 +81,71 @@ describe("TokenLoader", () => {
       rmSync(rootDir, { recursive: true, force: true });
     }
   });
+
+  it("loads and merges all json files under a hierarchy", () => {
+    const rootDir = mkdtempSync(join(tmpdir(), "token-loader-multi-json-"));
+    mkdirSync(join(rootDir, "universal"), { recursive: true });
+    writeFileSync(
+      join(rootDir, "universal", "colors.json"),
+      JSON.stringify({
+        color: {
+          blue: {
+            500: {
+              $value: "#3B82F6",
+              $type: "color",
+            },
+          },
+        },
+      })
+    );
+    writeFileSync(
+      join(rootDir, "universal", "spacing.json"),
+      JSON.stringify({
+        space: {
+          4: {
+            $value: "1rem",
+            $type: "dimension",
+          },
+        },
+      })
+    );
+
+    try {
+      const tokensByHierarchy = new TokenLoader(rootDir).loadTokensByHierarchy();
+
+      expect(tokensByHierarchy.get("universal")).toMatchObject({
+        color: {
+          blue: {
+            500: {
+              $value: "#3B82F6",
+              $type: "color",
+            },
+          },
+        },
+        space: {
+          4: {
+            $value: "1rem",
+            $type: "dimension",
+          },
+        },
+      });
+    } finally {
+      rmSync(rootDir, { recursive: true, force: true });
+    }
+  });
+
+  it("rejects non-json files inside a hierarchy", () => {
+    const rootDir = mkdtempSync(join(tmpdir(), "token-loader-non-json-"));
+    mkdirSync(join(rootDir, "universal"), { recursive: true });
+    writeFileSync(join(rootDir, "universal", "colors.json"), JSON.stringify({}));
+    writeFileSync(join(rootDir, "universal", "notes.txt"), "not allowed");
+
+    try {
+      expect(() => new TokenLoader(rootDir).loadTokensByHierarchy()).toThrow(
+        "Unexpected file 'universal/notes.txt'"
+      );
+    } finally {
+      rmSync(rootDir, { recursive: true, force: true });
+    }
+  });
 });

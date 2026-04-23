@@ -1,5 +1,7 @@
 #!/usr/bin/env node
 
+import { resolve } from "node:path";
+import { fileURLToPath } from "node:url";
 import { buildTokens } from "./build-tokens.js";
 import type { BuildOptions } from "./build-config.js";
 
@@ -104,8 +106,28 @@ async function main(): Promise<void> {
   }
 }
 
-if (import.meta.url === `file://${process.argv[1]}`) {
-  main();
+/**
+ * Returns true when this file is executed directly (node/tsx), not imported.
+ */
+function isDirectExecution(): boolean {
+  const entryArg = process.argv[1];
+  if (!entryArg) {
+    return false;
+  }
+
+  const currentFilePath = fileURLToPath(import.meta.url);
+  const entryFilePath = entryArg.startsWith("file://") ? fileURLToPath(entryArg) : entryArg;
+
+  const normalizePath = (pathValue: string): string => {
+    const resolvedPath = resolve(pathValue);
+    return process.platform === "win32" ? resolvedPath.toLowerCase() : resolvedPath;
+  };
+
+  return normalizePath(currentFilePath) === normalizePath(entryFilePath);
+}
+
+if (isDirectExecution()) {
+  void main();
 }
 
 export { buildTokens, type BuildOptions };

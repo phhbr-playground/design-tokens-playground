@@ -9,7 +9,7 @@ export type Hierarchy = (typeof ALLOWED_HIERARCHIES)[number];
 export { ALLOWED_HIERARCHIES, TOKEN_FILENAME, TOKENS_ROOT };
 
 /**
- * Loads and merges token files from `tokens/{hierarchy}/tokens.json`.
+ * Loads and merges token files from `tokens/{hierarchy}/*.json`.
  * Hierarchy is determined solely by folder; token paths carry no hierarchy prefix.
  */
 export class TokenLoader {
@@ -34,24 +34,38 @@ export class TokenLoader {
     const result = new Map<Hierarchy, Record<string, unknown>>();
 
     for (const hierarchy of ALLOWED_HIERARCHIES) {
-      const filePath = join(this.rootDir, hierarchy, TOKEN_FILENAME);
-      if (!existsSync(filePath)) continue;
+      const hierarchyDir = join(this.rootDir, hierarchy);
+      if (!existsSync(hierarchyDir)) continue;
 
-      let content: Record<string, unknown>;
-      try {
-        content = JSON.parse(readFileSync(filePath, "utf-8"));
-      } catch (error) {
-        throw new Error(
-          `Could not load token file '${filePath}': ${error instanceof Error ? error.message : String(error)}`
-        );
+      const jsonFiles = readdirSync(hierarchyDir)
+        .filter((name) => name.toLowerCase().endsWith(".json"))
+        .sort((a, b) => a.localeCompare(b));
+
+      if (jsonFiles.length === 0) continue;
+
+      const hierarchyTokens: Record<string, unknown> = {};
+
+      for (const name of jsonFiles) {
+        const filePath = join(hierarchyDir, name);
+
+        let content: Record<string, unknown>;
+        try {
+          content = JSON.parse(readFileSync(filePath, "utf-8"));
+        } catch (error) {
+          throw new Error(
+            `Could not load token file '${filePath}': ${error instanceof Error ? error.message : String(error)}`
+          );
+        }
+
+        this.mergeTokens(hierarchyTokens, content);
       }
 
-      result.set(hierarchy, content);
+      result.set(hierarchy, hierarchyTokens);
     }
 
     if (result.size === 0) {
       throw new Error(
-        `No token files found in '${this.rootDir}'. Expected at least one of: ${ALLOWED_HIERARCHIES.map((h) => `${h}/${TOKEN_FILENAME}`).join(", ")}`
+        `No token files found in '${this.rootDir}'. Expected at least one .json file under: ${ALLOWED_HIERARCHIES.join(", ")}`
       );
     }
 
@@ -87,13 +101,13 @@ export class TokenLoader {
         const full = join(hierarchyDir, name);
         if (statSync(full).isDirectory()) {
           throw new Error(
-            `Nested directories are not allowed under '${entry.name}/'. Put all tokens inside '${TOKEN_FILENAME}' (use DTCG groups).`
+            `Nested directories are not allowed under '${entry.name}/'. Put all tokens in top-level .json files (use DTCG groups).`
           );
         }
 
-        if (name !== TOKEN_FILENAME && !name.toLowerCase().startsWith("readme")) {
+        if (!name.toLowerCase().endsWith(".json") && !name.toLowerCase().startsWith("readme")) {
           throw new Error(
-            `Unexpected file '${entry.name}/${name}'. Only '${TOKEN_FILENAME}' is permitted per hierarchy.`
+            `Unexpected file '${entry.name}/${name}'. Only .json files are permitted per hierarchy.`
           );
         }
       }
