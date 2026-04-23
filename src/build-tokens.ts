@@ -1,13 +1,101 @@
 import { writeFileSync } from "node:fs";
 import { join } from "node:path";
 import StyleDictionary from "style-dictionary";
-import { builders, processTokens } from "@tokens-studio/tokenscript-interpreter";
+import { Color, Fn } from "@tokens-studio/schema-validation";
+import {
+  builders,
+  Config as TokenScriptConfig,
+  processTokens,
+} from "@tokens-studio/tokenscript-interpreter";
 import { TokenLoader, type Hierarchy } from "./token-loader.js";
 import { TokenReferenceResolver } from "./token-reference-resolver.js";
 import { TokenValidator, type TokenGroup } from "./token-validator.js";
 import { BuildConfig, type BuildOptions } from "./build-config.js";
 
 const tokenLoader = new TokenLoader();
+
+const OKLCH_SCHEMA_URI = "https://schema.tokenscript.dev.gcp.tokens.studio/custom/oklch/1";
+const CLAMP_FUNCTION_SCHEMA_URI = "https://schema.tokenscript.dev.gcp.tokens.studio/custom/function-clamp/1";
+
+/**
+ * Builds an interpreter config with custom schemas used by this repository.
+ */
+function createTokenScriptRuntimeConfig(): TokenScriptConfig {
+  const oklchSchema = Color.parseColorSpec({
+    name: "Oklch",
+    description: "OKLCH color schema with an initializer for oklch(l, c, h, alpha?).",
+    type: "color",
+    schema: {
+      type: "object",
+      order: ["l", "c", "h", "alpha"],
+      required: ["l", "c", "h"],
+      properties: {
+        l: { type: "number" },
+        c: { type: "number" },
+        h: { type: "number" },
+        alpha: { type: "number" },
+      },
+    },
+    initializers: [
+      {
+        keyword: "oklch",
+        schema: {
+          type: "array",
+          items: { type: "number" },
+          minItems: 3,
+          maxItems: 4,
+        },
+        script: {
+          type: "https://schema.tokenscript.dev.gcp.tokens.studio/api/v1/core/tokenscript/0/initializer",
+          script:
+            "variable output: Color.Oklch;\n" +
+            "output.l = {input}.get(0).get(0);\n" +
+            "output.c = {input}.get(0).get(1);\n" +
+            "output.h = {input}.get(0).get(2);\n\n" +
+            "if ({input}.get(0).length() == 4) [\n" +
+            "  output.alpha = {input}.get(0).get(3);\n" +
+            "]\n\n" +
+            "return output;",
+        },
+      },
+    ],
+    conversions: [],
+  });
+
+  const clampFunctionSchema = Fn.parseFunctionSpec({
+    name: "Clamp",
+    type: "function",
+    keyword: "clamp",
+    description: "Returns a CSS clamp() string without evaluating mixed-unit arithmetic.",
+    input: {
+      type: "object",
+      properties: {
+        min: { type: "string" },
+        preferred: { type: "string" },
+        max: { type: "string" },
+      },
+    },
+    script: {
+      type: "https://schema.tokenscript.dev.gcp.tokens.studio/api/v1/core/tokenscript/0/function",
+      script:
+        "variable minValue: String = {input}.get(0);\n" +
+        "variable preferredValue: String = {input}.get(1);\n" +
+        "variable maxValue: String = {input}.get(2);\n\n" +
+        "return \"clamp(\".concat(minValue).concat(\", \" ).concat(preferredValue).concat(\", \" ).concat(maxValue).concat(\")\");",
+    },
+  });
+
+  return new TokenScriptConfig().registerSchemas([
+    {
+      uri: OKLCH_SCHEMA_URI,
+      schema: oklchSchema,
+    },
+    {
+      uri: CLAMP_FUNCTION_SCHEMA_URI,
+      schema: clampFunctionSchema,
+    },
+  ]);
+}
 
 /**
  * Creates a JSON-safe deep clone for token trees.
@@ -26,6 +114,39 @@ function toObject(value: unknown): Record<string, unknown> {
 /**
  * Converts flat primitive arrays into CSS-like space-delimited values.
  */
+
+/**
+ * Strips $value/$type/$description/$extensions from nodes that are both a
+ * token leaf and a group (mixed nodes). Turns them into pure groups so
+ * Style Dictionary can process their children without emitting an invalid
+ * top-level token for the parent.
+ */
+function normalizeMixedNodes(tokens: Record<string, unknown>): Record<string, unknown> {
+  const result: Record<string, unknown> = {};
+  for (const [key, value] of Object.entries(tokens)) {
+    if (value && typeof value === "object" && !Array.isArray(value)) {
+      const node = value as Record<string, unknown>;
+      const hasValue = "$value" in node;
+      const childKeys = Object.keys(node).filter((k) => !k.startsWith("$"));
+      if (hasValue && childKeys.length > 0) {
+        // Mixed node: keep children only, drop leaf properties.
+        const childOnly: Record<string, unknown> = {};
+        for (const ck of childKeys) {
+          childOnly[ck] = node[ck];
+        }
+        result[key] = normalizeMixedNodes(childOnly);
+      } else if (hasValue) {
+        result[key] = node;
+      } else {
+        result[key] = normalizeMixedNodes(node);
+      }
+    } else {
+      result[key] = value;
+    }
+  }
+  return result;
+}
+
 function normalizeInterpretedValue(value: unknown): unknown {
   if (Array.isArray(value) && value.every((entry) => ["string", "number", "boolean"].includes(typeof entry))) {
     return value.join(" ");
@@ -191,8 +312,10 @@ export async function buildTokens(options: BuildOptions = {}) {
   }
 
   console.log("🎯 Interpreting tokens with tokenscript-interpreter...");
+  const tokenScriptConfig = createTokenScriptRuntimeConfig();
   const processed = processTokens(allTokens, {
     builder: new builders.FlatObjectBuilder(),
+    config: tokenScriptConfig,
   });
 
   if (processed.issues && processed.issues.size > 0) {
@@ -203,6 +326,9 @@ export async function buildTokens(options: BuildOptions = {}) {
   const flatInterpretedValues = normalizeFlatInterpretedValues(toObject(processed.output));
   const interpretedTokens = applyInterpretedValues(allTokens, flatInterpretedValues);
 
+  // Normalize mixed nodes before passing to Style Dictionary.
+  const sdTokens = normalizeMixedNodes(interpretedTokens);
+
   // Generate Style Dictionary platforms
   const config = new BuildConfig({
     outputDir,
@@ -212,7 +338,7 @@ export async function buildTokens(options: BuildOptions = {}) {
     generateJson,
     generateCss,
     generateJs,
-  }).createConfig(interpretedTokens);
+  }).createConfig(sdTokens);
 
   const sd = new StyleDictionary(config);
 

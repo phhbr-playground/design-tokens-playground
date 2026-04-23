@@ -79,6 +79,7 @@
     "yargs": "^18.0.0"
   },
   "dependencies": {
+    "@tokens-studio/schema-validation": "0.1.0",
     "@tokens-studio/tokenscript-interpreter": "0.32.0"
   }
 }

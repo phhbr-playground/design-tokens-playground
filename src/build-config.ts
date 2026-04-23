@@ -1,8 +1,7 @@
 import StyleDictionary, {
   type Config,
   type PlatformConfig,
-  type File,
-  type Transform
+  type File
 } from "style-dictionary";
 
 /**
@@ -11,11 +10,13 @@ import StyleDictionary, {
  * This avoids accidental mutation of literals such as `clamp()` or `calc()`
  * when tokens are serialized for CSS output.
  */
-export const cssFunctionTransform: Transform = {
+type ValueToken = { value?: unknown };
+
+export const cssFunctionTransform = {
   name: "css/function-preserve",
   type: "value",
   transitive: true,
-  matcher: (token) => {
+  matcher: (token: ValueToken) => {
     // Apply to all tokens that might contain CSS functions
     return typeof token.value === "string" &&
            (token.value.includes("clamp(") ||
@@ -23,7 +24,7 @@ export const cssFunctionTransform: Transform = {
             token.value.includes("calc(") ||
             token.value.includes("var("));
   },
-  transformer: (token) => {
+  transformer: (token: ValueToken) => {
     // Ensure CSS functions are preserved as-is
     return token.value;
   }
@@ -127,8 +128,13 @@ export class BuildConfig {
     if (this.options.generateTypes) platforms.ts = this.createTsPlatform();
 
     return {
-      tokens,
+      tokens: tokens as Config["tokens"],
       platforms,
+      log: {
+        errors: {
+          brokenReferences: "throw",
+        },
+      },
     };
   }
 }

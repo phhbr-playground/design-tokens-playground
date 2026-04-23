@@ -76,6 +76,17 @@ describe("TokenValidator", () => {
     expect(validator.getErrors()).toContain("Token 'color.blue.500' is missing required $type.");
   });
 
+  it("warns about mixed-node violations from the invalid-mixed-node fixture", () => {
+    const validator = validateFixture("invalid-mixed-node");
+
+    expect(validator.getErrors()).toEqual([]);
+    expect(validator.getWarnings()).toEqual(
+      expect.arrayContaining([
+        expect.stringContaining("is both a leaf ($value present) and a group"),
+      ])
+    );
+  });
+
   it("validates fixture references against discovered token paths", () => {
     const validator = new TokenValidator();
     const tokensByHierarchy = loadFixtureTokensByHierarchy("valid");

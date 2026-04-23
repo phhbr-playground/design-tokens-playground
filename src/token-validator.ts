@@ -108,6 +108,11 @@ export class TokenValidator {
     if (!node || typeof node !== "object") return;
     if (this.isTokenLeaf(node)) {
       out.set(path.join("."), hierarchy);
+      // Mixed node: also register child token paths.
+      const childKeys = Object.keys(node).filter((k) => !k.startsWith("$"));
+      for (const ck of childKeys) {
+        this.collectPaths((node as unknown as Record<string, unknown>)[ck] as TokenGroup, [...path, ck], hierarchy, out);
+      }
       return;
     }
     for (const [key, child] of Object.entries(node)) {
@@ -125,6 +130,17 @@ export class TokenValidator {
 
     if (this.isTokenLeaf(node)) {
       this.validateLeaf(node as DesignTokenValue, path, hierarchy, pathToHierarchy);
+      // Mixed node: also walk child token nodes.
+      const childKeys = Object.keys(node).filter((k) => !k.startsWith("$"));
+      for (const ck of childKeys) {
+        const childPath = [...path, ck];
+        if (!SEGMENT_PATTERN.test(ck)) {
+          this.errors.push(
+            `Segment '${ck}' (at '${childPath.join(".")}') is not kebab-case (lowercase letters, digits, '-').`
+          );
+        }
+        this.walk((node as unknown as Record<string, unknown>)[ck] as TokenGroup, childPath, hierarchy, pathToHierarchy);
+      }
       return;
     }
 
@@ -156,6 +172,13 @@ export class TokenValidator {
     pathToHierarchy: Map<string, Hierarchy>
   ): void {
     const pathStr = path.join(".");
+
+    const mixedKeys = Object.keys(token).filter((k) => !k.startsWith("$"));
+    if (mixedKeys.length > 0) {
+      this.warnings.push(
+        `Token '${pathStr}' is both a leaf ($value present) and a group (has child keys: ${mixedKeys.join(", ")}). A node must be either a group or a token leaf, not both.`
+      );
+    }
 
     if (!("$value" in token)) {
       this.errors.push(`Token '${pathStr}' is missing required $value.`);
