@@ -40,8 +40,8 @@ class TokenPreviewApp {
 
   async start() {
     try {
-      const { resolved, raw } = await loadTokenSources();
-      this.entries = flattenTokens(resolved, raw);
+      const { resolved, raw, hierarchyMap } = await loadTokenSources();
+      this.entries = flattenTokens(resolved, raw, hierarchyMap);
       this.renderFilterTags();
       this.applyFilters();
     } catch (err) {
@@ -126,8 +126,8 @@ class TokenPreviewApp {
     const { search, hierarchies, groups } = this.filter;
 
     return this.entries.filter((entry) => {
-      const [hierarchy, group] = entry.name.split(".");
-      if (hierarchies.length && !hierarchies.includes(hierarchy)) return false;
+      const group = getFilterPrefix(entry.name);
+      if (hierarchies.length && !hierarchies.includes(entry.hierarchy)) return false;
       if (groups.length && !groups.includes(group)) return false;
       if (!search) return true;
       return searchableParts(entry).some((part) => part.toLowerCase().includes(search));
@@ -135,9 +135,10 @@ class TokenPreviewApp {
   }
 
   /**
-   * Two filter rows: the hierarchy layer and the "starts with" namespace group.
-   * The group row narrows to whatever is reachable under the active hierarchies
-   * so users never see a tag that would yield zero results.
+   * Two filter rows: the hierarchy layer (source folder) and a two-segment
+   * path prefix (for example `bluu.cornflower-100`). The prefix row narrows to
+   * whatever is reachable under the active hierarchies so users never see a
+   * tag that would yield zero results.
    */
   renderFilterTags() {
     const hierarchies = this.collectHierarchies();
@@ -150,7 +151,7 @@ class TokenPreviewApp {
 
     this.dom.filterTags.innerHTML =
       renderFilterRow("Hierarchy", "hierarchy", hierarchies, this.filter.hierarchies) +
-      renderFilterRow("Starts with", "group", groups, this.filter.groups);
+      renderFilterRow("Prefix", "group", groups, this.filter.groups);
 
     this.dom.filterTags.querySelectorAll(".filter-tag").forEach((button) => {
       button.addEventListener("click", () => {
@@ -161,17 +162,20 @@ class TokenPreviewApp {
   }
 
   collectHierarchies() {
-    return [...new Set(this.entries.map((entry) => entry.name.split(".")[0]))].sort();
+    const set = new Set();
+    for (const entry of this.entries) {
+      if (entry.hierarchy) set.add(entry.hierarchy);
+    }
+    return [...set].sort();
   }
 
   collectGroups(hierarchyScope) {
     const scope = hierarchyScope?.length ? new Set(hierarchyScope) : null;
     const groups = new Set();
     for (const entry of this.entries) {
-      const [hierarchy, group] = entry.name.split(".");
-      if (!group) continue;
-      if (scope && !scope.has(hierarchy)) continue;
-      groups.add(group);
+      if (scope && !scope.has(entry.hierarchy)) continue;
+      const group = getFilterPrefix(entry.name);
+      if (group) groups.add(group);
     }
     return [...groups].sort();
   }
@@ -221,6 +225,11 @@ function renderFilterRow(label, kind, values, active) {
     })
     .join("");
   return `<div class="filter-row"><span class="filter-row-label">${escHtml(label)}</span><div class="filter-row-tags">${tags}</div></div>`;
+}
+
+function getFilterPrefix(name) {
+  const segments = name.split(".");
+  return segments.slice(0, 2).join(".") || name;
 }
 
 function searchableParts(entry) {

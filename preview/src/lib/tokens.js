@@ -5,12 +5,24 @@
  * @property {unknown} preScriptValue
  * @property {string} type
  * @property {string} description
+ * @property {string} hierarchy
  */
 
 const REFERENCE_PATTERN = /\{([^}]+)\}/g;
 
+// Hierarchy is determined by the source folder under /tokens/, not by the
+// token path itself, so we have to load each layer file directly to recover
+// that grouping for the preview UI.
+const HIERARCHY_LAYERS = [
+  "design-values",
+  "universal",
+  "system",
+  "semantic",
+  "component",
+];
+
 async function fetchJson(path, errorMessage) {
-  const res = await fetch(path);
+  const res = await fetch(path, { cache: "no-store" });
   if (!res.ok) throw new Error(errorMessage);
   return res.json();
 }
@@ -22,25 +34,64 @@ async function fetchJson(path, errorMessage) {
  */
 async function fetchJsonWithFallback(paths, errorMessage) {
   for (const path of paths) {
-    const res = await fetch(path);
+    const res = await fetch(path, { cache: "no-store" });
     if (res.ok) return res.json();
   }
   throw new Error(errorMessage);
 }
 
 /**
- * Resolved + raw are loaded in parallel because they're independent files
- * and combined latency dominates the preview startup time.
+ * Resolved + raw + hierarchy sources are loaded in parallel because they're
+ * independent files and combined latency dominates preview startup.
  */
 export async function loadTokenSources() {
-  const [resolved, raw] = await Promise.all([
-    fetchJson("../dist/tokens.resolved.json", "tokens.resolved.json not found"),
+  const [resolved, raw, hierarchyMap] = await Promise.all([
+    fetchJson("/dist/tokens.resolved.json", "tokens.resolved.json not found"),
     fetchJsonWithFallback(
-      ["../dist/tokens.pre-script.json", "../dist/tokens.json"],
+      ["/dist/tokens.pre-script.json", "/dist/tokens.json"],
       "pre-script token JSON not found",
     ),
+    buildHierarchyMap(),
   ]);
-  return { resolved, raw };
+  return { resolved, raw, hierarchyMap };
+}
+
+/**
+ * Maps every leaf token path to its source folder. Missing layer files are
+ * tolerated so the preview still renders if a build only emits a subset.
+ */
+async function buildHierarchyMap() {
+  const entries = await Promise.all(
+    HIERARCHY_LAYERS.map(async (layer) => {
+      try {
+        const tree = await fetchJson(
+          `/tokens/${layer}/tokens.json`,
+          `tokens/${layer}/tokens.json not found`,
+        );
+        return [layer, tree];
+      } catch {
+        return [layer, null];
+      }
+    }),
+  );
+
+  const map = new Map();
+  for (const [layer, tree] of entries) {
+    if (!tree) continue;
+    collectLeafPaths(tree, "", (path) => map.set(path, layer));
+  }
+  return map;
+}
+
+function collectLeafPaths(node, prefix, visit) {
+  if (!node || typeof node !== "object") return;
+  for (const key of Object.keys(node)) {
+    const value = node[key];
+    if (!value || typeof value !== "object") continue;
+    const path = prefix ? `${prefix}.${key}` : key;
+    if ("$value" in value) visit(path);
+    else collectLeafPaths(value, path, visit);
+  }
 }
 
 function getPath(obj, dotPath) {
@@ -55,14 +106,14 @@ function getPath(obj, dotPath) {
  *
  * @returns {TokenEntry[]}
  */
-export function flattenTokens(resolved, raw) {
+export function flattenTokens(resolved, raw, hierarchyMap = new Map()) {
   const result = [];
-  walk(resolved, "", result, raw);
+  walk(resolved, "", result, raw, hierarchyMap);
   result.sort((a, b) => a.name.localeCompare(b.name));
   return result;
 }
 
-function walk(node, prefix, out, rawRoot) {
+function walk(node, prefix, out, rawRoot, hierarchyMap) {
   if (!node || typeof node !== "object") return;
 
   for (const key of Object.keys(node)) {
@@ -78,10 +129,11 @@ function walk(node, prefix, out, rawRoot) {
         preScriptValue: rawLeaf.$value,
         type: value.$type || rawLeaf.$type || "",
         description: value.$description || rawLeaf.$description || "",
+        hierarchy: hierarchyMap.get(path) || "",
       });
       continue;
     }
-    walk(value, path, out, rawRoot);
+    walk(value, path, out, rawRoot, hierarchyMap);
   }
 }
 

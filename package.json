@@ -37,7 +37,7 @@
     "build:watch": "tsx --watch src/index.ts",
     "clean": "rm -rf dist",
     "publish:npm": "npm run build && npm publish",
-    "preview": "npm run build && npx http-server . -p 8000 -o /preview/index.html",
+    "preview": "npm run build && npx http-server . -p 8000 -c-1 -o /preview/index.html",
     "test": "node --experimental-vm-modules ./node_modules/jest/bin/jest.js --runInBand",
     "test:watch": "node --experimental-vm-modules ./node_modules/jest/bin/jest.js --watch"
   },
