@@ -46,7 +46,7 @@ function createTokenScriptRuntimeConfig(): TokenScriptConfig {
           maxItems: 4,
         },
         script: {
-          type: "https://schema.tokenscript.dev.gcp.tokens.studio/api/v1/core/tokenscript/0/initializer",
+          type: "https://schema.tokenscript.dev.gcp.tokens.studio/api/v1/core/tokenscript/0/",
           script:
             "variable output: Color.Oklch;\n" +
             "output.l = {input}.get(0).get(0);\n" +
@@ -76,7 +76,7 @@ function createTokenScriptRuntimeConfig(): TokenScriptConfig {
       },
     },
     script: {
-      type: "https://schema.tokenscript.dev.gcp.tokens.studio/api/v1/core/tokenscript/0/function",
+      type: "https://schema.tokenscript.dev.gcp.tokens.studio/api/v1/core/tokenscript/0/",
       script:
         "variable minValue: String = {input}.get(0);\n" +
         "variable preferredValue: String = {input}.get(1);\n" +
