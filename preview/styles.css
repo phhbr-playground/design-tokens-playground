@@ -126,6 +126,34 @@ body {
   flex-wrap: wrap;
 }
 
+.view-switch {
+  display: inline-flex;
+  gap: 6px;
+  margin-top: 12px;
+  padding: 4px;
+  border-radius: 12px;
+  background: #eaf1ff;
+  border: 1px solid #d7e3ff;
+}
+
+.view-btn {
+  border: none;
+  background: transparent;
+  color: #35507a;
+  border-radius: 8px;
+  padding: 7px 11px;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  cursor: pointer;
+}
+
+.view-btn.active {
+  background: white;
+  color: #0f172a;
+  box-shadow: 0 1px 5px rgba(15, 23, 42, 0.1);
+}
+
 .search-input {
   flex: 1;
   min-width: 240px;
@@ -170,9 +198,31 @@ body {
 
 .filter-tags {
   display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 14px;
+}
+
+.filter-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.filter-row-label {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--color-text-muted);
+  min-width: 88px;
+}
+
+.filter-row-tags {
+  display: flex;
   gap: 7px;
   flex-wrap: wrap;
-  margin-top: 14px;
 }
 
 .filter-tag {
@@ -205,6 +255,223 @@ body {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(420px, 1fr));
   gap: 22px;
+}
+
+.hidden {
+  display: none !important;
+}
+
+.main-content {
+  min-height: 420px;
+}
+
+.graph-view {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.graph-toolbar {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.graph-search-input {
+  min-width: 300px;
+  flex: 1;
+  padding: 9px 12px;
+  border-radius: 10px;
+  border: 1.5px solid #dbeafe;
+  background: white;
+  font-size: 13px;
+  color: #0f172a;
+}
+
+.graph-search-input:focus {
+  outline: none;
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.13);
+}
+
+.graph-btn {
+  border: none;
+  border-radius: 10px;
+  background: #2563eb;
+  color: white;
+  padding: 9px 14px;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.graph-btn.secondary {
+  background: #e2e8f0;
+  color: #334155;
+}
+
+.graph-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 320px;
+  gap: 14px;
+  min-height: 72vh;
+}
+
+.graph-canvas-wrap {
+  background: linear-gradient(180deg, #ffffff 0%, #f8fbff 100%);
+  border: 1px solid #dbeafe;
+  border-radius: 16px;
+  box-shadow: var(--shadow-sm);
+  min-height: 72vh;
+  overflow: hidden;
+}
+
+.graph-svg {
+  width: 100%;
+  height: 100%;
+  display: block;
+  cursor: grab;
+}
+
+.graph-svg.is-panning {
+  cursor: grabbing;
+}
+
+.graph-edge {
+  fill: none;
+  stroke: #afbed4;
+  stroke-width: 1.5;
+  opacity: 0.62;
+}
+
+.graph-edge.related {
+  stroke: #2563eb;
+  stroke-width: 2.1;
+  opacity: 0.95;
+}
+
+.graph-node {
+  cursor: pointer;
+}
+
+.graph-node rect {
+  fill: #f8fbff;
+  stroke: #d5e2fb;
+  stroke-width: 1.5;
+}
+
+.graph-node.virtual rect {
+  fill: #f8fafc;
+  stroke: #cbd5e1;
+  stroke-dasharray: 5 3;
+}
+
+.graph-node.related rect {
+  stroke: #60a5fa;
+}
+
+.graph-node.selected rect {
+  fill: #eff6ff;
+  stroke: #2563eb;
+  stroke-width: 2;
+}
+
+.graph-node-title {
+  font-size: 12px;
+  font-family: var(--mono);
+  fill: #0f172a;
+}
+
+.graph-node-sub {
+  font-size: 10px;
+  fill: #1d4ed8;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.graph-node-preview {
+  font-size: 10px;
+  fill: #64748b;
+}
+
+.graph-inspector {
+  background: white;
+  border: 1px solid #dbeafe;
+  border-radius: 16px;
+  box-shadow: var(--shadow-sm);
+  padding: 16px;
+  overflow-y: auto;
+}
+
+.inspector-title {
+  font-size: 14px;
+  color: #0f172a;
+  margin-bottom: 8px;
+}
+
+.inspector-name {
+  font-family: var(--mono);
+  font-size: 12px;
+  color: #0f172a;
+  margin-bottom: 8px;
+  word-break: break-all;
+}
+
+.inspector-meta {
+  font-size: 12px;
+  color: #334155;
+  margin-bottom: 6px;
+}
+
+.inspector-muted {
+  font-size: 12px;
+  color: #64748b;
+  line-height: 1.6;
+}
+
+.inspector-section {
+  margin-top: 12px;
+}
+
+.inspector-section h4 {
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #64748b;
+  margin-bottom: 7px;
+}
+
+.inspector-link {
+  display: block;
+  width: 100%;
+  text-align: left;
+  border: 1px solid #cbdcf7;
+  background: #f6faff;
+  color: #1d4ed8;
+  border-radius: 8px;
+  padding: 6px 9px;
+  margin-bottom: 6px;
+  font-family: var(--mono);
+  font-size: 11px;
+  cursor: pointer;
+  word-break: break-all;
+}
+
+.inspector-link:hover {
+  background: #e9f1ff;
+}
+
+.inspector-open-list {
+  margin-top: 12px;
+  width: 100%;
+  border: none;
+  border-radius: 10px;
+  padding: 10px 12px;
+  background: #1d4ed8;
+  color: white;
+  font-weight: 700;
+  cursor: pointer;
 }
 
 /* ── Category card ───────────────────────────────────────── */
@@ -587,7 +854,30 @@ body {
     flex-direction: column;
   }
 
+  .view-switch {
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  .view-btn {
+    flex: 1;
+    text-align: center;
+  }
+
   .search-input {
     min-width: 100%;
+  }
+
+  .graph-search-input {
+    min-width: 100%;
+  }
+
+  .graph-layout {
+    grid-template-columns: 1fr;
+    min-height: 0;
+  }
+
+  .graph-canvas-wrap {
+    min-height: 58vh;
   }
 }
