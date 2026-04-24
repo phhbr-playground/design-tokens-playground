@@ -21,6 +21,14 @@ const HIERARCHY_LAYERS = [
   "component",
 ];
 
+// URLs are resolved from this module so preview works from both localhost
+// root and GitHub Pages subpaths like /design-tokens-playground/.
+const PROJECT_ROOT_URL = new URL("../../../", import.meta.url);
+
+function fromProjectRoot(path) {
+  return new URL(path, PROJECT_ROOT_URL).href;
+}
+
 async function fetchJson(path, errorMessage) {
   const res = await fetch(path, { cache: "no-store" });
   if (!res.ok) throw new Error(errorMessage);
@@ -46,9 +54,12 @@ async function fetchJsonWithFallback(paths, errorMessage) {
  */
 export async function loadTokenSources() {
   const [resolved, raw, hierarchyMap] = await Promise.all([
-    fetchJson("/dist/tokens.resolved.json", "tokens.resolved.json not found"),
+    fetchJson(fromProjectRoot("dist/tokens.resolved.json"), "tokens.resolved.json not found"),
     fetchJsonWithFallback(
-      ["/dist/tokens.pre-script.json", "/dist/tokens.json"],
+      [
+        fromProjectRoot("dist/tokens.pre-script.json"),
+        fromProjectRoot("dist/tokens.json"),
+      ],
       "pre-script token JSON not found",
     ),
     buildHierarchyMap(),
@@ -65,7 +76,7 @@ async function buildHierarchyMap() {
     HIERARCHY_LAYERS.map(async (layer) => {
       try {
         const tree = await fetchJson(
-          `/tokens/${layer}/tokens.json`,
+          fromProjectRoot(`tokens/${layer}/tokens.json`),
           `tokens/${layer}/tokens.json not found`,
         );
         return [layer, tree];
