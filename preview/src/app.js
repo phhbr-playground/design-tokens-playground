@@ -112,6 +112,7 @@ class TokenPreviewApp {
 
     this.graphView.setActive(!isList);
     if (isList) this.listView.render(this.filteredEntries());
+    else this.graphView.render(this.filteredEntries());
   }
 
   applyFilters() {

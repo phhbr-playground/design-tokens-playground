@@ -8,6 +8,14 @@ const ROW_GAP = 30;
 const MARGIN = 56;
 const PREVIEW_LENGTH = 56;
 
+const HIERARCHY_ORDER = {
+  "design-values": 0,
+  "universal": 1,
+  "system": 2,
+  "semantic": 3,
+  "component": 4,
+};
+
 /**
  * @typedef {Object} GraphNode
  * @property {string} name
@@ -33,16 +41,21 @@ const PREVIEW_LENGTH = 56;
  */
 
 /**
- * Builds a layered graph from token entries. Layering uses dependency depth
- * so dependents flow left-to-right, matching reading order and minimizing
- * crossing edges for typical design-token hierarchies.
+ * Builds a layered graph from token entries. Columns are organized by hierarchy layer
+ * (design-values → universal → system → semantic → component), displaying the token
+ * dependency structure across the hierarchy levels.
  *
  * @returns {GraphData}
  */
 export function buildGraphData(entries) {
   const nodes = collectNodes(entries);
+  const hierarchyMap = new Map();
+  for (const entry of entries) {
+    hierarchyMap.set(entry.name, entry.hierarchy);
+  }
+
   const edges = collectEdges(entries, nodes);
-  assignDepths(nodes);
+  assignHierarchyColumns(nodes, hierarchyMap);
 
   const layers = groupByDepth(nodes);
   const positions = layoutLayers(layers);
@@ -113,28 +126,13 @@ function ensureVirtualNode(nodes, name) {
 }
 
 /**
- * Memoized DFS with cycle short-circuiting; cycles fall back to depth 0 so
- * the layout still produces a usable diagram if the token graph is malformed.
+ * Assigns each node to a column based on its hierarchy level.
+ * Virtual nodes (references not in the current set) default to the component layer.
  */
-function assignDepths(nodes) {
-  const memo = new Map();
-
-  const compute = (name, trail) => {
-    if (memo.has(name)) return memo.get(name);
-    if (trail.has(name)) return 0;
-
-    trail.add(name);
-    const node = nodes.get(name);
-    let depth = 0;
-    for (const dep of node?.incoming ?? []) {
-      depth = Math.max(depth, compute(dep, new Set(trail)) + 1);
-    }
-    memo.set(name, depth);
-    return depth;
-  };
-
-  for (const name of nodes.keys()) {
-    nodes.get(name).depth = compute(name, new Set());
+function assignHierarchyColumns(nodes, hierarchyMap) {
+  for (const [name, node] of nodes) {
+    const hierarchy = hierarchyMap.get(name);
+    node.depth = HIERARCHY_ORDER[hierarchy] ?? 4; // default to component for virtual nodes
   }
 }
 

@@ -63,14 +63,18 @@ export class GraphView {
       this.selectedName = "";
     }
 
-    if (this.needsFit) {
-      this.fitToViewport();
-      this.needsFit = false;
-    }
-
     this.draw();
     this.renderInspector();
     this.applyTransform();
+
+    // Defer fit until after DOM layout so SVG dimensions are correct
+    if (this.needsFit) {
+      this.needsFit = false;
+      requestAnimationFrame(() => {
+        this.fitToViewport();
+        this.applyTransform();
+      });
+    }
   }
 
   bindEvents() {
