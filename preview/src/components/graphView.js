@@ -181,7 +181,7 @@ export class GraphView {
           positions,
           nodeWidth,
           nodeHeight,
-          this.isRelatedEdge(edge),
+          hasSelection && this.isRelevantEdge(edge, relevantNodes),
           hasSelection && !this.isRelevantEdge(edge, relevantNodes),
         ),
       )
@@ -320,18 +320,14 @@ export class GraphView {
     return relevantNodes.has(edge.source) && relevantNodes.has(edge.target);
   }
 
-  isRelatedEdge(edge) {
-    if (!this.selectedName) return false;
-    return edge.source === this.selectedName || edge.target === this.selectedName;
-  }
 }
 
 const MARKER_DEFS =
   '<defs>' +
-  '<marker id="edge-dot" markerWidth="2" markerHeight="2" refX="1" refY="1" orient="auto" markerUnits="userSpaceOnUse">' +
-  '<circle cx="1" cy="1" r="1" fill="#afbed4"></circle></marker>' +
-  '<marker id="edge-dot-related" markerWidth="2" markerHeight="2" refX="1" refY="1" orient="auto" markerUnits="userSpaceOnUse">' +
-  '<circle cx="1" cy="1" r="1" fill="#2563eb"></circle></marker>' +
+  '<marker id="edge-dot" viewBox="0 0 8 8" markerWidth="8" markerHeight="8" refX="6" refY="4" orient="auto" markerUnits="userSpaceOnUse">' +
+  '<circle cx="4" cy="4" r="4" fill="#afbed4" stroke="#ffffff" stroke-width="0.7"></circle></marker>' +
+  '<marker id="edge-dot-related" viewBox="0 0 8 8" markerWidth="8" markerHeight="8" refX="6" refY="4" orient="auto" markerUnits="userSpaceOnUse">' +
+  '<circle cx="4" cy="4" r="4" fill="#2563eb" stroke="#ffffff" stroke-width="0.7"></circle></marker>' +
   '</defs>';
 
 function clamp(value, min, max) {
