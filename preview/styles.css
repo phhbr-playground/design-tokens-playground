@@ -351,8 +351,16 @@ body {
   opacity: 0.95;
 }
 
+.graph-edge.dimmed {
+  opacity: 0.15;
+}
+
 .graph-node {
   cursor: pointer;
+}
+
+.graph-node.dimmed {
+  opacity: 0.3;
 }
 
 .graph-node rect {

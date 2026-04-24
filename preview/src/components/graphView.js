@@ -171,9 +171,20 @@ export class GraphView {
 
   draw() {
     const { nodes, edges, positions, nodeWidth, nodeHeight } = this.data;
+    const relevantNodes = this.computeRelevantNodes();
+    const hasSelection = Boolean(this.selectedName);
 
     const edgeMarkup = edges
-      .map((edge) => renderEdge(edge, positions, nodeWidth, nodeHeight, this.isRelatedEdge(edge)))
+      .map((edge) =>
+        renderEdge(
+          edge,
+          positions,
+          nodeWidth,
+          nodeHeight,
+          this.isRelatedEdge(edge),
+          hasSelection && !this.isRelevantEdge(edge, relevantNodes),
+        ),
+      )
       .filter(Boolean)
       .join("");
 
@@ -186,6 +197,7 @@ export class GraphView {
           nodeHeight,
           node.name === this.selectedName,
           this.isRelatedNode(node.name),
+          hasSelection && !relevantNodes.has(node.name),
         ),
       )
       .filter(Boolean)
@@ -291,6 +303,23 @@ export class GraphView {
     return selected.incoming.includes(name) || selected.outgoing.includes(name);
   }
 
+  computeRelevantNodes() {
+    if (!this.selectedName) return new Set();
+    const nodeMap = new Map(this.data.nodes.map((node) => [node.name, node]));
+    if (!nodeMap.has(this.selectedName)) return new Set();
+
+    const relevant = new Set([this.selectedName]);
+    collectReachable(nodeMap, this.selectedName, "incoming", relevant);
+    collectReachable(nodeMap, this.selectedName, "outgoing", relevant);
+
+    return relevant;
+  }
+
+  isRelevantEdge(edge, relevantNodes) {
+    if (!this.selectedName) return true;
+    return relevantNodes.has(edge.source) && relevantNodes.has(edge.target);
+  }
+
   isRelatedEdge(edge) {
     if (!this.selectedName) return false;
     return edge.source === this.selectedName || edge.target === this.selectedName;
@@ -298,14 +327,34 @@ export class GraphView {
 }
 
 const MARKER_DEFS =
-  '<defs><marker id="arrowhead" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">' +
-  '<polygon points="0 0, 10 3.5, 0 7" fill="#7c8ba3"></polygon></marker></defs>';
+  '<defs>' +
+  '<marker id="edge-dot" markerWidth="2" markerHeight="2" refX="1" refY="1" orient="auto" markerUnits="userSpaceOnUse">' +
+  '<circle cx="1" cy="1" r="1" fill="#afbed4"></circle></marker>' +
+  '<marker id="edge-dot-related" markerWidth="2" markerHeight="2" refX="1" refY="1" orient="auto" markerUnits="userSpaceOnUse">' +
+  '<circle cx="1" cy="1" r="1" fill="#2563eb"></circle></marker>' +
+  '</defs>';
 
 function clamp(value, min, max) {
   return Math.max(min, Math.min(max, value));
 }
 
-function renderEdge(edge, positions, nodeWidth, nodeHeight, related) {
+function collectReachable(nodeMap, startName, direction, seen) {
+  const queue = [startName];
+
+  while (queue.length) {
+    const current = queue.shift();
+    const currentNode = nodeMap.get(current);
+    if (!currentNode) continue;
+
+    for (const next of currentNode[direction] || []) {
+      if (seen.has(next)) continue;
+      seen.add(next);
+      queue.push(next);
+    }
+  }
+}
+
+function renderEdge(edge, positions, nodeWidth, nodeHeight, related, dimmed) {
   const source = positions.get(edge.source);
   const target = positions.get(edge.target);
   if (!source || !target) return "";
@@ -317,17 +366,22 @@ function renderEdge(edge, positions, nodeWidth, nodeHeight, related) {
   const c1x = startX + 36;
   const c2x = endX - 36;
 
-  const cls = related ? "graph-edge related" : "graph-edge";
-  return `<path class="${cls}" d="M ${startX} ${startY} C ${c1x} ${startY}, ${c2x} ${endY}, ${endX} ${endY}" marker-end="url(#arrowhead)"></path>`;
+  const classes = ["graph-edge"];
+  if (related) classes.push("related");
+  if (dimmed) classes.push("dimmed");
+
+  const markerId = related ? "edge-dot-related" : "edge-dot";
+  return `<path class="${classes.join(" ")}" d="M ${startX} ${startY} C ${c1x} ${startY}, ${c2x} ${endY}, ${endX} ${endY}" marker-end="url(#${markerId})"></path>`;
 }
 
-function renderNode(node, position, nodeWidth, nodeHeight, selected, related) {
+function renderNode(node, position, nodeWidth, nodeHeight, selected, related, dimmed) {
   if (!position) return "";
 
   const classes = ["graph-node"];
   if (node.virtual) classes.push("virtual");
   if (selected) classes.push("selected");
   else if (related) classes.push("related");
+  if (dimmed) classes.push("dimmed");
 
   const typeLabel = node.virtual ? "virtual" : node.type || "token";
 
